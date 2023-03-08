@@ -18,7 +18,7 @@ public class UserController {
 	private final UserService userService;
 
 	@GetMapping("/{userId}")
-	public Optional<UserDetailResponse> getUser(@PathVariable("userId") int id) {
+	public Optional<UserDetailResponse> getUser(@PathVariable("userId") Integer id) {
 		return userService.getUser(id);
 	}
 }

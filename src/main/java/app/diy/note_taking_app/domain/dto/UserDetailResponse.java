@@ -12,11 +12,7 @@ import lombok.Setter;
 public class UserDetailResponse {
 
 	private int id;
-
 	private String name;
-
 	private String email;
-
 	private String passWord;
-
 }

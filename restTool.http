@@ -1,3 +1,16 @@
-@userId = 1
+@userId = 2
+@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzYW1wbGUyQGdtYWlsLmNvbSIsImlhdCI6MTY3ODAwMDg2MywiZXhwIjoxNjc4MDIxMDIzfQ.DFsyeHJd4x48m79Me_gLwFfFHA8Y1XXN-9AHoLU-a_s
 
-GET http://localhost:8080/users/1
+###
+POST http://localhost:8080/auth/register HTTP/1.1
+content-type: application/json
+
+{
+    "username": "Sample Name2",
+    "email": "sample2@gmail.com",
+		"password": "test2"
+}
+
+###
+GET http://localhost:8080/users/{{userId}} HTTP/1.1
+Authorization: {{token}}
