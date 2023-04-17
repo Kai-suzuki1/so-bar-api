@@ -4,9 +4,10 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.domain.dto.UserDetailResponse;
+import app.diy.note_taking_app.exceptions.UserNotFoundException;
 import app.diy.note_taking_app.repository.UserRepository;
+import app.diy.note_taking_app.service.factory.UserDetailFactory;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -15,14 +16,12 @@ public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepository;
 
+	private final UserDetailFactory userDetailFactory;
+
 	@Override
-	public Optional<UserDetailResponse> getUser(Integer userId) {
-		Optional<User> user = userRepository.findById(userId);
-		return Optional.ofNullable(UserDetailResponse.builder()
-				.id(user.get().getId())
-				.name(user.get().getName())
-				.email(user.get().getEmail())
-				.passWord(user.get().getPassword())
-				.build());
+	public UserDetailResponse getUser(Integer userId) {
+		return userDetailFactory.create(Optional.of(userRepository
+				.findById(userId)
+				.orElseThrow(() -> new UserNotFoundException("User Not Found By ID"))));
 	}
 }
