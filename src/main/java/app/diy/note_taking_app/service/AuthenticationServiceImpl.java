@@ -10,6 +10,7 @@ import app.diy.note_taking_app.domain.dto.AuthenticationRequest;
 import app.diy.note_taking_app.domain.dto.AuthenticationResponse;
 import app.diy.note_taking_app.domain.dto.RegisterRequest;
 import app.diy.note_taking_app.domain.entity.User;
+import app.diy.note_taking_app.exceptions.UserNotFoundException;
 import app.diy.note_taking_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -47,7 +48,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 						request.getEmail(),
 						request.getPassword()));
 		String jwtToken = jwtService.generateToken(
-				userRepository.findByEmail(request.getEmail()).orElseThrow());
+				userRepository
+						.findByEmail(request.getEmail())
+						.orElseThrow(() -> new UserNotFoundException("User Not Found By Email")));
 
 		return AuthenticationResponse.builder()
 				.token(jwtToken)
