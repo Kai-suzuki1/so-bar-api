@@ -8,17 +8,16 @@ import org.springframework.web.bind.annotation.RestController;
 import app.diy.note_taking_app.domain.dto.UserDetailResponse;
 import app.diy.note_taking_app.service.UserService;
 import lombok.RequiredArgsConstructor;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("v1/users")
 @RequiredArgsConstructor
 public class UserController {
 
 	private final UserService userService;
 
 	@GetMapping("/{userId}")
-	public Optional<UserDetailResponse> getUser(@PathVariable("userId") Integer id) {
+	public UserDetailResponse getUser(@PathVariable("userId") Integer id) {
 		return userService.getUser(id);
 	}
 }
