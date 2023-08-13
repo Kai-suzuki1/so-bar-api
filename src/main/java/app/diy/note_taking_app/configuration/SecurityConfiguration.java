@@ -27,7 +27,7 @@ public class SecurityConfiguration {
 				.disable()
 				.authorizeHttpRequests()
 				.requestMatchers(
-						"/auth/**") // URL patterns as whitelist
+						"/v1/auth/**") // URL patterns as whitelist
 				.permitAll()
 				.anyRequest() // Except URLs in whitelist, other URLs must be authenticated
 				.authenticated()
