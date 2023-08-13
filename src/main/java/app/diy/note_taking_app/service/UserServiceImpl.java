@@ -1,7 +1,5 @@
 package app.diy.note_taking_app.service;
 
-import java.util.Optional;
-
 import org.springframework.stereotype.Service;
 
 import app.diy.note_taking_app.domain.dto.UserDetailResponse;
@@ -20,8 +18,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserDetailResponse getUser(Integer userId) {
-		return userDetailFactory.create(Optional.of(userRepository
-				.findById(userId)
-				.orElseThrow(() -> new UserNotFoundException("User Not Found By ID"))));
+		return userDetailFactory
+				.create(userRepository.findById(userId)
+						.orElseThrow(() -> new UserNotFoundException("User Not Found")));
 	}
 }
