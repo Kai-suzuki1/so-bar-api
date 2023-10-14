@@ -49,7 +49,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 						request.getPassword()));
 		String jwtToken = jwtService.generateToken(
 				userRepository
-						.findByEmail(request.getEmail())
+						.findByEmailAndDeletedFlagFalse(request.getEmail())
 						.orElseThrow(() -> new UserNotFoundException("User Not Found By Email")));
 
 		return AuthenticationResponse.builder()

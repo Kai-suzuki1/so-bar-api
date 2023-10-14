@@ -10,6 +10,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import app.diy.note_taking_app.repository.UserRepository;
 import app.diy.note_taking_app.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +24,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 	private final UserDetailsService userDetailsService;
 	private final JwtService jwtService;
+	private final UserRepository userRepository;
 
 	@Override
 	protected void doFilterInternal(
@@ -44,7 +46,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		// Extracting authorization token
 		jwtToken = authHeader.substring(7); // 7 is because "Bearer " is 6 characters, including space
 		// Extracting username( = email)to fetch the user data from DB
-		userEmail = jwtService.extractUserName(jwtToken);
+		userEmail = userRepository
+				.findById(Integer.parseInt(jwtService.extractUserId(jwtToken)))
+				.getEmail();
 
 		// Checking username is not null and the user is not authenticated(authenticated
 		// user does not have to proceed the process)

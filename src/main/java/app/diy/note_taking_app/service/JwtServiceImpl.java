@@ -9,19 +9,26 @@ import java.util.function.Function;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import app.diy.note_taking_app.configuration.NoteTakingAppConfigProperties;
+import app.diy.note_taking_app.domain.entity.User;
+import app.diy.note_taking_app.exceptions.UserNotFoundException;
+import app.diy.note_taking_app.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
 
-	private static final String SECRET_KEY = "66546A576E5A7134743777217A25432A462D4A614E645267556B587032733575";
+	private final NoteTakingAppConfigProperties ntaProp;
+	private final UserRepository userRepository;
 
 	@Override
-	public String extractUserName(String token) {
+	public String extractUserId(String token) {
 		return extractClaim(token, Claims::getSubject);
 	}
 
@@ -33,16 +40,16 @@ public class JwtServiceImpl implements JwtService {
 
 	// generate token from UserDetails without extraClaims
 	@Override
-	public String generateToken(UserDetails userDetails) {
+	public String generateToken(User userDetails) {
 		return generateToken(new HashMap<>(), userDetails);
 	}
 
 	@Override
-	public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+	public String generateToken(Map<String, Object> extraClaims, User userDetails) {
 		return Jwts
 				.builder()
 				.setClaims(extraClaims)
-				.setSubject(userDetails.getUsername())
+				.setSubject(userDetails.getId().toString())
 				.setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24 * 365)) // expired 1 year and 1000ms
 				.signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -51,9 +58,14 @@ public class JwtServiceImpl implements JwtService {
 
 	@Override
 	public boolean isTokenValid(String token, UserDetails userDetails) {
-		final String userName = extractUserName(token);
+		final String userIdInToken = extractUserId(token);
+		final String userIdFromDb = userRepository
+				.findByEmailAndDeletedFlagFalse(userDetails.getUsername())
+				.orElseThrow(() -> new UserNotFoundException("User Not Found By Email"))
+				.getId()
+				.toString();
 
-		return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
+		return (userIdInToken.equals(userIdFromDb)) && !isTokenExpired(token);
 	}
 
 	private boolean isTokenExpired(String token) {
@@ -74,7 +86,7 @@ public class JwtServiceImpl implements JwtService {
 	}
 
 	private Key getSignInKey() {
-		byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+		byte[] keyBytes = Decoders.BASE64.decode(ntaProp.decodeSecretKey());
 		return Keys.hmacShaKeyFor(keyBytes);
 	}
 }
