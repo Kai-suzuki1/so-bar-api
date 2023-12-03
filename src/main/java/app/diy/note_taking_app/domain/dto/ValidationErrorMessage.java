@@ -1,4 +1,4 @@
-package app.diy.note_taking_app.exceptions;
+package app.diy.note_taking_app.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

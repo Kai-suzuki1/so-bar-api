@@ -1,4 +1,4 @@
-package app.diy.note_taking_app.domain.dto;
+package app.diy.note_taking_app.domain.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

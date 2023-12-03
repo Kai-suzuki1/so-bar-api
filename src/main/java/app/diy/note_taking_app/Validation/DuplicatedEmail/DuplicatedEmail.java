@@ -1,4 +1,4 @@
-package app.diy.note_taking_app.Validation.DuplicatedEmail;
+package app.diy.note_taking_app.validation.duplicatedEmail;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

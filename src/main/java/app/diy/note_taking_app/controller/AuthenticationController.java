@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import app.diy.note_taking_app.domain.dto.AuthenticationRequest;
-import app.diy.note_taking_app.domain.dto.AuthenticationResponse;
-import app.diy.note_taking_app.domain.dto.RegisterRequest;
+import app.diy.note_taking_app.domain.dto.request.AuthenticationRequest;
+import app.diy.note_taking_app.domain.dto.request.RegisterRequest;
+import app.diy.note_taking_app.domain.dto.response.AuthenticationResponse;
 import app.diy.note_taking_app.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 

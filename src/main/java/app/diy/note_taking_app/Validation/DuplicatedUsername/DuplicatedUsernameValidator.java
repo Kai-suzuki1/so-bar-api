@@ -1,4 +1,4 @@
-package app.diy.note_taking_app.Validation.DuplicatedUsername;
+package app.diy.note_taking_app.validation.duplicatedUsername;
 
 import app.diy.note_taking_app.repository.UserRepository;
 import jakarta.validation.ConstraintValidator;

@@ -2,9 +2,8 @@ package app.diy.note_taking_app.service.factory;
 
 import org.springframework.stereotype.Component;
 
-import app.diy.note_taking_app.domain.dto.UserDetailResponse;
+import app.diy.note_taking_app.domain.dto.response.UserDetailResponse;
 import app.diy.note_taking_app.domain.entity.User;
-import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

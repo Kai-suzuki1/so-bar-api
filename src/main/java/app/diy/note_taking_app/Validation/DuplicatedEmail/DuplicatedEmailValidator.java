@@ -1,4 +1,4 @@
-package app.diy.note_taking_app.Validation.DuplicatedEmail;
+package app.diy.note_taking_app.validation.duplicatedEmail;
 
 import app.diy.note_taking_app.repository.UserRepository;
 import jakarta.validation.ConstraintValidator;

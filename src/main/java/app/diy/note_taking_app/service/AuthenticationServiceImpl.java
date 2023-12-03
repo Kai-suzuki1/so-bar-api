@@ -6,9 +6,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import app.diy.note_taking_app.constant.Role;
-import app.diy.note_taking_app.domain.dto.AuthenticationRequest;
-import app.diy.note_taking_app.domain.dto.AuthenticationResponse;
-import app.diy.note_taking_app.domain.dto.RegisterRequest;
+import app.diy.note_taking_app.domain.dto.request.AuthenticationRequest;
+import app.diy.note_taking_app.domain.dto.request.RegisterRequest;
+import app.diy.note_taking_app.domain.dto.response.AuthenticationResponse;
 import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.exceptions.UserNotFoundException;
 import app.diy.note_taking_app.repository.UserRepository;

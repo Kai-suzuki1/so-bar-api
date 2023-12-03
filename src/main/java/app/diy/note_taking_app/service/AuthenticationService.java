@@ -1,8 +1,8 @@
 package app.diy.note_taking_app.service;
 
-import app.diy.note_taking_app.domain.dto.AuthenticationRequest;
-import app.diy.note_taking_app.domain.dto.AuthenticationResponse;
-import app.diy.note_taking_app.domain.dto.RegisterRequest;
+import app.diy.note_taking_app.domain.dto.request.AuthenticationRequest;
+import app.diy.note_taking_app.domain.dto.request.RegisterRequest;
+import app.diy.note_taking_app.domain.dto.response.AuthenticationResponse;
 
 public interface AuthenticationService {
 

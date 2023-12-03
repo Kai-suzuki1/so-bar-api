@@ -1,9 +1,9 @@
-package app.diy.note_taking_app.domain.dto;
+package app.diy.note_taking_app.domain.dto.request;
 
 import org.hibernate.validator.constraints.Length;
 
-import app.diy.note_taking_app.Validation.DuplicatedEmail.DuplicatedEmail;
-import app.diy.note_taking_app.Validation.DuplicatedUsername.DuplicatedUsername;
+import app.diy.note_taking_app.validation.duplicatedEmail.DuplicatedEmail;
+import app.diy.note_taking_app.validation.duplicatedUsername.DuplicatedUsername;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;

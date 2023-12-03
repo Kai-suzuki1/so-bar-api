@@ -2,7 +2,7 @@ package app.diy.note_taking_app.service;
 
 import org.springframework.stereotype.Service;
 
-import app.diy.note_taking_app.domain.dto.UserDetailResponse;
+import app.diy.note_taking_app.domain.dto.response.UserDetailResponse;
 import app.diy.note_taking_app.exceptions.UserNotFoundException;
 import app.diy.note_taking_app.repository.UserRepository;
 import app.diy.note_taking_app.service.factory.UserDetailFactory;
@@ -20,6 +20,6 @@ public class UserServiceImpl implements UserService {
 	public UserDetailResponse getUser(Integer userId) {
 		return userDetailFactory
 				.create(userRepository.findById(userId)
-						.orElseThrow(() -> new UserNotFoundException("User Not Found")));
+						.orElseThrow(() -> new UserNotFoundException("User was not found")));
 	}
 }

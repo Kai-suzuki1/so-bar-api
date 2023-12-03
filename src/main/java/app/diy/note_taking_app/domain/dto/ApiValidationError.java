@@ -1,9 +1,7 @@
-package app.diy.note_taking_app.exceptions;
+package app.diy.note_taking_app.domain.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +15,5 @@ public class ApiValidationError {
 	private String path;
 	private List<ValidationErrorMessage> message;
 	private int statusCode;
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
 	private LocalDateTime localDateTime;
 }

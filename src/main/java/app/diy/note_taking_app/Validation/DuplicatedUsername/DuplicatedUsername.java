@@ -1,4 +1,4 @@
-package app.diy.note_taking_app.Validation.DuplicatedUsername;
+package app.diy.note_taking_app.validation.duplicatedUsername;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
