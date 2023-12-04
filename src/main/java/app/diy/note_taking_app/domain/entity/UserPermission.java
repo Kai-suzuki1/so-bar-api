@@ -44,4 +44,10 @@ public class UserPermission {
 
 	@Column(nullable = false)
 	private String invitedUserName;
+
+	@Column(nullable = false)
+	private boolean deletedFlag;
+
+	@Column(nullable = false)
+	private boolean acceptedFlag;
 }

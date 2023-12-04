@@ -10,7 +10,8 @@ import app.diy.note_taking_app.domain.dto.response.NoteDetailResponse;
 import app.diy.note_taking_app.domain.dto.response.PreviewNoteResponse;
 import app.diy.note_taking_app.domain.entity.Note;
 import app.diy.note_taking_app.domain.entity.UserPermission;
-import app.diy.note_taking_app.exceptions.JsonConversionFailureException;
+import app.diy.note_taking_app.exceptions.InsufficientUserAuthorizationException;
+import app.diy.note_taking_app.exceptions.NoteNotFoundException;
 import app.diy.note_taking_app.repository.NoteRepository;
 import app.diy.note_taking_app.repository.UserPermissionRepository;
 import app.diy.note_taking_app.service.factory.NoteFactory;
@@ -49,10 +50,20 @@ public class NoteServiceImpl implements NoteService {
 	public NoteDetailResponse getNoteDetail(Integer noteId, Integer userId) {
 		Note note = noteRepository
 				.findByIdAndDeletedFlagFalse(noteId)
-				.orElseThrow(() -> new JsonConversionFailureException("Note was not found"));
+				.orElseThrow(() -> new NoteNotFoundException("Note was not found"));
 		List<UserPermission> userPermissions = userPermissionRepository
 				.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(noteId);
 
-		return noteFactory.creteNoteDetailResponse(note, userPermissions, userId);
+		NoteDetailResponse noteDetail = noteFactory.creteNoteDetailResponse(note, userPermissions, userId);
+		// Throw exception if user is not author and does not have authorization
+		if (!noteDetail.isUserIsCreator()
+				&& (noteDetail.getSharedUsers().isEmpty() || noteDetail.getSharedUsers().stream()
+						.filter(sharedUser -> sharedUser.getUserId() == userId)
+						.toList()
+						.isEmpty())) {
+			throw new InsufficientUserAuthorizationException("Not allowed to access this note");
+		}
+
+		return noteDetail;
 	}
 }

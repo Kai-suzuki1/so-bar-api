@@ -102,6 +102,33 @@ public class DefaultExceptionHandler {
 	}
 
 	/**
+	 * Handling if a request is prohibited due to the lack of user authorization
+	 * {@link InsufficientUserAuthorizationException}
+	 * and returns the detail of the exception.
+	 * {@link ApiError}
+	 * HttpStatus code is 403
+	 * 
+	 * @param e       if a request is prohibited due to the lack of user
+	 *                authorization
+	 * @param request request body
+	 * @return {@code ResponseEntity<ApiError>}
+	 */
+	@ExceptionHandler(InsufficientUserAuthorizationException.class)
+	public ResponseEntity<ApiError> handleException(
+			InsufficientUserAuthorizationException e,
+			HttpServletRequest request) {
+
+		ApiError apiError = ApiError.builder()
+				.path(request.getRequestURI())
+				.message(e.getMessage())
+				.statusCode(HttpStatus.FORBIDDEN.value())
+				.localDateTime(LocalDateTime.now())
+				.build();
+
+		return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
+	}
+
+	/**
 	 * Handling if a certain user was not found
 	 * {@link UserNotFoundException}
 	 * and returns the detail of the exception.
@@ -128,29 +155,29 @@ public class DefaultExceptionHandler {
 	}
 
 	/**
-	 * Handling if an information in JWT token did't match
-	 * {@link MismatchUserDetailException}
+	 * Handling if a certain note was not found
+	 * {@link NoteNotFoundException}
 	 * and returns the detail of the exception.
 	 * {@link ApiError}
-	 * HttpStatus code is 405
+	 * HttpStatus code is 404
 	 * 
-	 * @param e       if an information in JWT token did't match
+	 * @param e       if a user is not found
 	 * @param request request body
 	 * @return {@code ResponseEntity<ApiError>}
 	 */
-	@ExceptionHandler(MismatchUserDetailException.class)
+	@ExceptionHandler(NoteNotFoundException.class)
 	public ResponseEntity<ApiError> handleException(
-			MismatchUserDetailException e,
+			NoteNotFoundException e,
 			HttpServletRequest request) {
 
 		ApiError apiError = ApiError.builder()
 				.path(request.getRequestURI())
 				.message(e.getMessage())
-				.statusCode(HttpStatus.METHOD_NOT_ALLOWED.value())
+				.statusCode(HttpStatus.NOT_FOUND.value())
 				.localDateTime(LocalDateTime.now())
 				.build();
 
-		return new ResponseEntity<>(apiError, HttpStatus.METHOD_NOT_ALLOWED);
+		return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
 	}
 
 	/**
@@ -167,6 +194,33 @@ public class DefaultExceptionHandler {
 	@ExceptionHandler(SQLException.class)
 	public ResponseEntity<ApiError> handleException(
 			SQLException e,
+			HttpServletRequest request) {
+
+		ApiError apiError = ApiError.builder()
+				.path(request.getRequestURI())
+				.message(e.getMessage())
+				.statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+				.localDateTime(LocalDateTime.now())
+				.build();
+
+		return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	/**
+	 * Handling if there is an error thrown during Json parse processing
+	 * process
+	 * {@link JsonConversionFailureException}
+	 * and returns the detail of the exception.
+	 * {@link ApiError}
+	 * HttpStatus code is 500
+	 * 
+	 * @param e       if there is an error thrown during Json parse processing
+	 * @param request request body
+	 * @return {@code ResponseEntity<ApiError>}
+	 */
+	@ExceptionHandler(JsonConversionFailureException.class)
+	public ResponseEntity<ApiError> handleException(
+			JsonConversionFailureException e,
 			HttpServletRequest request) {
 
 		ApiError apiError = ApiError.builder()
