@@ -6,7 +6,6 @@ import app.diy.note_taking_app.domain.dto.response.UserDetailResponse;
 import app.diy.note_taking_app.domain.entity.User;
 
 @Component
-@RequiredArgsConstructor
 public class UserDetailFactory {
 
 	public UserDetailResponse create(User user) {
