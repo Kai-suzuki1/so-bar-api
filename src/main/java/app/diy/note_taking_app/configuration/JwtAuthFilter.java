@@ -5,11 +5,12 @@ import java.io.IOException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import app.diy.note_taking_app.domain.entity.User;
+import app.diy.note_taking_app.exceptions.UserNotFoundException;
 import app.diy.note_taking_app.repository.UserRepository;
 import app.diy.note_taking_app.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -22,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-	private final UserDetailsService userDetailsService;
 	private final JwtService jwtService;
 	private final UserRepository userRepository;
 
@@ -30,13 +30,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(
 			HttpServletRequest request,
 			HttpServletResponse response,
-			FilterChain filterChain) throws ServletException, IOException {
+			FilterChain filterChain) throws ServletException, IOException, UserNotFoundException {
 
 		final String authHeader = request.getHeader("Authorization"); // To get authorization from header in request
-		final String userEmail;
+		final User user;
 		final String jwtToken;
 
-		// Checking JWT token exists
+		// Checking if JWT token exists
 		// Header is empty or header does not contain a toke "Bearer", do nothing
 		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 			filterChain.doFilter(request, response); // Delegate next process of Filter in FilterChain
@@ -45,26 +45,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 		// Extracting authorization token
 		jwtToken = authHeader.substring(7); // 7 is because "Bearer " is 6 characters, including space
-		// Extracting username( = email)to fetch the user data from DB
-		userEmail = userRepository
-				.findById(Integer.parseInt(jwtService.extractUserId(jwtToken)))
-				.getEmail();
+		// Fetch a user by userId from token
+		user = userRepository
+				.findByIdAndDeletedFlagFalse(Integer.parseInt(jwtService.extractUserId(jwtToken)))
+				.orElseThrow(() -> new UserNotFoundException("User was not found"));
 
-		// Checking username is not null and the user is not authenticated(authenticated
-		// user does not have to proceed the process)
-		if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			// Fetch a user by userEmail
-			UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+		// Checking if the user is not authenticated
+		// *authenticated user does not have to proceed the process below*
+		if (SecurityContextHolder.getContext().getAuthentication() == null) {
+			// Upcast User to UserDetails class
+			UserDetails userDetails = user;
 
 			// Checking if the token is still valid
 			if (jwtService.isTokenValid(jwtToken, userDetails)) {
 				// Update SecurityContextHolder and send the request Dispatcher Servlet
 				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
 						userDetails,
-						null, // Null is because the user is still Un-authenticated
+						null, // null is because the user is still not authenticated
 						userDetails.getAuthorities());
 
-				// Build details out of request and update(set) SecurityContextHolder
+				// Build details out of the request and update(set) SecurityContextHolder
 				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}

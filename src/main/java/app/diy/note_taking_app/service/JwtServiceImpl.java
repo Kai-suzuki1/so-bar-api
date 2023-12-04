@@ -61,7 +61,7 @@ public class JwtServiceImpl implements JwtService {
 		final String userIdInToken = extractUserId(token);
 		final String userIdFromDb = userRepository
 				.findByEmailAndDeletedFlagFalse(userDetails.getUsername())
-				.orElseThrow(() -> new UserNotFoundException("User Not Found By Email"))
+				.orElseThrow(() -> new UserNotFoundException("User was not found"))
 				.getId()
 				.toString();
 

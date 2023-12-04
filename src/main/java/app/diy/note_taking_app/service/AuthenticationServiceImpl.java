@@ -50,7 +50,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		String jwtToken = jwtService.generateToken(
 				userRepository
 						.findByEmailAndDeletedFlagFalse(request.getEmail())
-						.orElseThrow(() -> new UserNotFoundException("User Not Found By Email")));
+						.orElseThrow(() -> new UserNotFoundException("User was not found")));
 
 		return AuthenticationResponse.builder()
 				.token(jwtToken)
