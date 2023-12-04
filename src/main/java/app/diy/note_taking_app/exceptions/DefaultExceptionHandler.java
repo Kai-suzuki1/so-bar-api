@@ -6,15 +6,44 @@ import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import app.diy.note_taking_app.domain.dto.ApiError;
+import app.diy.note_taking_app.domain.dto.ApiValidationError;
+import app.diy.note_taking_app.domain.dto.ValidationErrorMessage;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class DefaultExceptionHandler {
+
+	/**
+	 * Handling if AccessDeniedException & AuthenticationException error occurred
+	 * {@link AuthenticationException}
+	 * and returns the cause of the validation error.
+	 * {@link ApiError}
+	 * HttpStatus code is 403
+	 * 
+	 * @param e       if AccessDeniedException & AuthenticationException error
+	 *                occurred
+	 * @param request request body
+	 * @return {@code ResponseEntity<ApiValidationError>}
+	 */
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<ApiError> handleAuthenticationException(Exception e, HttpServletRequest request) {
+
+		ApiError apiError = ApiError.builder()
+				.path(request.getRequestURI())
+				.message("Failed to authenticate")
+				.statusCode(HttpStatus.FORBIDDEN.value())
+				.localDateTime(LocalDateTime.now())
+				.build();
+
+		return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
+	}
 
 	/**
 	 * Handling if validation error occurred
