@@ -1,4 +1,4 @@
-package app.diy.note_taking_app.validation.duplicatedEmail;
+package app.diy.note_taking_app.validation.duplicateEmail;
 
 import app.diy.note_taking_app.repository.UserRepository;
 import jakarta.validation.ConstraintValidator;
@@ -6,7 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class DuplicatedEmailValidator implements ConstraintValidator<DuplicatedEmail, String> {
+public class DuplicateEmailValidator implements ConstraintValidator<DuplicateEmail, String> {
 
 	private final UserRepository userRepository;
 

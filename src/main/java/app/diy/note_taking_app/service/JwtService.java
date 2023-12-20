@@ -10,13 +10,13 @@ import io.jsonwebtoken.Claims;
 
 public interface JwtService {
 
-	public String extractUserId(String token);
+	String extractUserId(String token);
 
-	public <T> T extractClaim(String token, Function<Claims, T> claimsResolver);
+	<T> T extractClaim(String token, Function<Claims, T> claimsResolver);
 
-	public String generateToken(User userDetails);
+	String generateToken(User userDetails);
 
-	public String generateToken(Map<String, Object> extraClaims, User userDetails);
+	String generateToken(Map<String, Object> extraClaims, User userDetails);
 
-	public boolean isTokenValid(String token, UserDetails userDetails);
+	boolean isTokenValid(String token, UserDetails userDetails);
 }

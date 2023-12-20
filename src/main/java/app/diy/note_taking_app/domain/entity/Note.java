@@ -29,8 +29,6 @@ public class Note extends TimeStampEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
-	private String userPermissionId;
-
 	private String title;
 
 	private String contents;

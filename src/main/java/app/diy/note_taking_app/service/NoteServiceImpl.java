@@ -26,7 +26,7 @@ public class NoteServiceImpl implements NoteService {
 	private final NoteFactory noteFactory;
 
 	@Override
-	public List<PreviewNoteResponse> getNotes(Integer userId) {
+	public List<PreviewNoteResponse> getNoteList(Integer userId) {
 		List<Note> notesWrittenByUser = noteRepository
 				.findByCreatedUser_IdAndDeletedFlagFalse(userId);
 		List<Note> notesWrittenByOther = userPermissionRepository

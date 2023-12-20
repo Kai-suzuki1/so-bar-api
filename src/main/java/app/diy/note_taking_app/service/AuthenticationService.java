@@ -6,7 +6,7 @@ import app.diy.note_taking_app.domain.dto.response.AuthenticationResponse;
 
 public interface AuthenticationService {
 
-	public AuthenticationResponse register(RegisterRequest request);
+	AuthenticationResponse register(RegisterRequest request);
 
-	public AuthenticationResponse authenticate(AuthenticationRequest request);
+	AuthenticationResponse authenticate(AuthenticationRequest request);
 }

@@ -1,4 +1,4 @@
-package app.diy.note_taking_app.validation.duplicatedEmail;
+package app.diy.note_taking_app.validation.duplicateUsername;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,16 +8,14 @@ import java.lang.annotation.Target;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import jakarta.validation.ReportAsSingleViolation;
 
-@Constraint(validatedBy = DuplicatedEmailValidator.class)
-@Target({ ElementType.FIELD, ElementType.METHOD })
+@Constraint(validatedBy = DuplicateUsernameValidator.class)
+@Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-@ReportAsSingleViolation
 @Documented
-public @interface DuplicatedEmail {
+public @interface DuplicateUsername {
 
-	String message() default "Entered Email is already Used";
+	String message() default "Entered Username is already Used";
 
 	Class<?>[] groups() default {};
 

@@ -7,7 +7,8 @@ import app.diy.note_taking_app.domain.dto.response.PreviewNoteResponse;
 
 public interface NoteService {
 
-	public List<PreviewNoteResponse> getNotes(Integer userId);
+	List<PreviewNoteResponse> getNoteList(Integer userId);
 
-	public NoteDetailResponse getNoteDetail(Integer noteId, Integer userId);
+	NoteDetailResponse getNoteDetail(Note note, Integer userId);
+
 }
