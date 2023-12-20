@@ -1,6 +1,7 @@
 package app.diy.note_taking_app.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,6 +19,12 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
 	public List<UserPermission> findByUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(Integer userId);
 
 	public List<UserPermission> findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(Integer noteId);
+
+	public Optional<UserPermission> findByNote_IdAndUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(
+			Integer noteId,
+			Integer userId);
+
+	public boolean existsByIdAndDeletedFlagFalse(Integer id);
 
 	@Modifying
 	@Query("update UserPermission set deletedFlag = true where id in :userPermissionIds")

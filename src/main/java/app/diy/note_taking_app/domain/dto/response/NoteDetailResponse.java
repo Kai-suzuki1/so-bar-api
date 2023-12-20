@@ -18,7 +18,7 @@ public class NoteDetailResponse {
 	private int id;
 	private String title;
 	private String contents;
-	private boolean userIsCreator;
+	private boolean userIsAuthor;
 	private List<UserAuthorization> sharedUsers;
 	private LocalDateTime createdAt;
 	private String createdBy;

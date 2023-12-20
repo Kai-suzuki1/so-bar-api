@@ -1,5 +1,9 @@
 package app.diy.note_taking_app.domain.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import app.diy.note_taking_app.domain.dto.PermissionType;
+import app.diy.note_taking_app.exceptions.JsonConversionFailureException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -50,4 +54,13 @@ public class UserPermission {
 
 	@Column(nullable = false)
 	private boolean acceptedFlag;
+
+	public PermissionType toPermissionType() {
+		try {
+			String hoge = type;
+			return new ObjectMapper().readValue(type, PermissionType.class);
+		} catch (Exception e) {
+			throw new JsonConversionFailureException(e.getMessage(), e);
+		}
+	}
 }

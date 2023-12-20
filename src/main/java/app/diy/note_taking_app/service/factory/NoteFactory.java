@@ -5,15 +5,13 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import app.diy.note_taking_app.domain.dto.PermissionType;
 import app.diy.note_taking_app.domain.dto.UserAuthorization;
+import app.diy.note_taking_app.domain.dto.request.NoteUpdateRequest;
 import app.diy.note_taking_app.domain.dto.response.NoteDetailResponse;
 import app.diy.note_taking_app.domain.dto.response.PreviewNoteResponse;
 import app.diy.note_taking_app.domain.entity.Note;
+import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.domain.entity.UserPermission;
-import app.diy.note_taking_app.exceptions.JsonConversionFailureException;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -21,9 +19,8 @@ import lombok.RequiredArgsConstructor;
 public class NoteFactory {
 
 	private static final int previewContentsMaxLength = 175;
-	private final ObjectMapper objectMapper;
 
-	public List<PreviewNoteResponse> createPreviewNotes(List<Note> notes) {
+	public List<PreviewNoteResponse> createPreviewNoteResponseList(List<Note> notes) {
 		return notes.stream()
 				.map((note) -> {
 					return PreviewNoteResponse.builder()
@@ -47,22 +44,24 @@ public class NoteFactory {
 			Note note,
 			List<UserPermission> userPermissions,
 			Integer userId) {
+		boolean isAuthor = note.getCreatedUser().getId() == userId;
+
 		return NoteDetailResponse.builder()
 				.id(note.getId())
 				.title(note.getTitle())
 				.contents(note.getContents())
-				.userIsCreator(note.getCreatedUser().getId() == userId)
-				.sharedUsers(userPermissions.isEmpty()
-						? List.of()
-						: userPermissions.stream()
+				.userIsAuthor(isAuthor)
+				.sharedUsers(isAuthor && !userPermissions.isEmpty()
+						? userPermissions.stream()
 								.map(userPermission -> {
 									return UserAuthorization.builder()
 											.permissionId(userPermission.getId())
 											.userId(userPermission.getUser().getId())
-											.type(convertToAuthorizationType(userPermission.getType()))
+											.type(userPermission.toPermissionType())
 											.build();
 								})
-								.toList())
+								.toList()
+						: List.of())
 				.createdAt(note.getCreatedAt())
 				.createdBy(note.getCreatedUser().getName())
 				.updatedAt(note.getUpdatedAt())
@@ -70,11 +69,35 @@ public class NoteFactory {
 				.build();
 	}
 
-	private PermissionType convertToAuthorizationType(String type) {
-		try {
-			return objectMapper.readValue(type, PermissionType.class);
-		} catch (Exception e) {
-			throw new JsonConversionFailureException("Failed to process JSON conversion", e);
-		}
+	public NoteDetailResponse creteNoteDetailResponse(Note note, Integer userId) {
+		return NoteDetailResponse.builder()
+				.id(note.getId())
+				.title(note.getTitle())
+				.contents(note.getContents())
+				.userIsAuthor(note.getCreatedUser().getId() == userId)
+				.sharedUsers(List.of())
+				.createdAt(note.getCreatedAt())
+				.createdBy(note.getCreatedUser().getName())
+				.updatedAt(note.getUpdatedAt())
+				.updatedBy(note.getUpdatedUser().getName())
+				.build();
+	}
+
+	public Note createNote(User user) {
+		return Note.builder()
+				.title("")
+				.contents("")
+				.createdUser(user)
+				.updatedUser(user)
+				.build();
+	}
+
+	public Note updateNote(Integer noteId, NoteUpdateRequest request, User user) {
+		return Note.builder()
+				.id(noteId)
+				.title(request.getTitle())
+				.contents(request.getContents())
+				.updatedUser(user)
+				.build();
 	}
 }

@@ -210,6 +210,32 @@ public class DefaultExceptionHandler {
 	}
 
 	/**
+	 * Handling if there is an error thrown during database process of Note
+	 * {@link NoteEntityTransactionalException}
+	 * and returns the detail of the exception.
+	 * {@link ApiError}
+	 * HttpStatus code is 500
+	 * 
+	 * @param e       if there is an error thrown during database process of Note
+	 * @param request request body
+	 * @return {@code ResponseEntity<ApiError>}
+	 */
+	@ExceptionHandler(NoteEntityTransactionalException.class)
+	public ResponseEntity<ApiError> handleException(
+			NoteEntityTransactionalException e,
+			HttpServletRequest request) {
+		e.printStackTrace();
+		ApiError apiError = ApiError.builder()
+				.path(request.getRequestURI())
+				.message(e.getMessage())
+				.statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+				.localDateTime(LocalDateTime.now())
+				.build();
+
+		return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	/**
 	 * Handling if there is an error thrown during database process
 	 * {@link SQLException}
 	 * and returns the detail of the exception.

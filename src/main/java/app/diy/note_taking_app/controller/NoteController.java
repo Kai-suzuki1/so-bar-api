@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,14 +22,12 @@ public class NoteController {
 	private final NoteService noteService;
 
 	@GetMapping
-	public List<PreviewNoteResponse> getNotes(@AuthenticationPrincipal User user) {
-		return noteService.getNotes(user.getId());
+	public List<PreviewNoteResponse> getNoteList(@AuthenticationPrincipal User user) {
+		return noteService.getNoteList(user.getId());
 	}
 
-	@GetMapping("/{noteId}")
-	public NoteDetailResponse getNoteDetail(
-			@PathVariable("noteId") Integer noteId,
-			@AuthenticationPrincipal User user) {
-		return noteService.getNoteDetail(noteId, user.getId());
+	@PostMapping("/create")
+	public NoteDetailResponse creteNote(@AuthenticationPrincipal User user) {
+		return noteService.create(user);
 	}
 }
