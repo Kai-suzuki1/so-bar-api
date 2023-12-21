@@ -57,7 +57,6 @@ public class UserPermission {
 
 	public PermissionType toPermissionType() {
 		try {
-			String hoge = type;
 			return new ObjectMapper().readValue(type, PermissionType.class);
 		} catch (Exception e) {
 			throw new JsonConversionFailureException(e.getMessage(), e);

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import app.diy.note_taking_app.domain.entity.Note;
 import app.diy.note_taking_app.domain.entity.UserPermission;
 
 @Repository
@@ -26,7 +27,13 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
 
 	public boolean existsByIdAndDeletedFlagFalse(Integer id);
 
+	public boolean existsByNote(Note note);
+
 	@Modifying
 	@Query("update UserPermission set deletedFlag = true where id in :userPermissionIds")
-	void deleteUserPermissions(@Param("userPermissionIds") List<Integer> userPermissionIds);
+	void deleteUserPermissionsByIds(@Param("userPermissionIds") List<Integer> userPermissionIds);
+
+	@Modifying
+	@Query("update UserPermission set deletedFlag = true where note = :note")
+	void deleteUserPermissionsByNote(@Param("note") Note note);
 }

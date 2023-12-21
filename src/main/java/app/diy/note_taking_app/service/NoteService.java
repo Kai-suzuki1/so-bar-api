@@ -19,4 +19,6 @@ public interface NoteService {
 	NoteDetailResponse create(User user);
 
 	NoteDetailResponse update(Integer noteId, NoteUpdateRequest request, User user);
+
+	void delete(Note note, User user);
 }

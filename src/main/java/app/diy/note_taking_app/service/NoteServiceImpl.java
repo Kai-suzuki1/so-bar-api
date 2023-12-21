@@ -13,7 +13,7 @@ import app.diy.note_taking_app.domain.dto.response.PreviewNoteResponse;
 import app.diy.note_taking_app.domain.entity.Note;
 import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.domain.entity.UserPermission;
-import app.diy.note_taking_app.exceptions.NoteEntityTransactionalException;
+import app.diy.note_taking_app.exceptions.DatabaseTransactionalException;
 import app.diy.note_taking_app.exceptions.NoteNotFoundException;
 import app.diy.note_taking_app.repository.NoteRepository;
 import app.diy.note_taking_app.repository.UserPermissionRepository;
@@ -72,7 +72,7 @@ public class NoteServiceImpl implements NoteService {
 			Note savedNote = noteRepository.save(noteFactory.createNote(user));
 			return noteFactory.creteNoteDetailResponse(savedNote, user.getId());
 		} catch (Exception e) {
-			throw new NoteEntityTransactionalException("Failed to save note", e);
+			throw new DatabaseTransactionalException("Failed to save note", e);
 		}
 	}
 
@@ -88,7 +88,21 @@ public class NoteServiceImpl implements NoteService {
 					userPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(noteId),
 					user.getId());
 		} catch (Exception e) {
-			throw new NoteEntityTransactionalException("Failed to update note", e);
+			throw new DatabaseTransactionalException("Failed to update note", e);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void delete(Note note, User user) {
+		try {
+			noteRepository.deleteNote(note.getId(), user);
+			// delete permissions liked to the note
+			if (userPermissionRepository.existsByNote(note)) {
+				userPermissionRepository.deleteUserPermissionsByNote(note);
+			}
+		} catch (Exception e) {
+			throw new DatabaseTransactionalException("Failed to delete note", e);
 		}
 	}
 }

@@ -7,7 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import app.diy.note_taking_app.domain.dto.response.UserDetailResponse;
 import app.diy.note_taking_app.domain.entity.Note;
+import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.domain.entity.UserPermission;
+import app.diy.note_taking_app.exceptions.DatabaseTransactionalException;
 import app.diy.note_taking_app.exceptions.UserNotFoundException;
 import app.diy.note_taking_app.repository.NoteRepository;
 import app.diy.note_taking_app.repository.UserPermissionRepository;
@@ -34,21 +36,24 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional
-	public void delete(Integer userId) {
-
+	public void delete(User user) {
+		Integer userId = user.getId();
 		List<Note> notes = noteRepository.findByCreatedUser_IdAndDeletedFlagFalse(userId);
 		List<UserPermission> userPermissions = userPermissionRepository.findByUser_IdAndDeletedFlagFalse(userId);
 
-		userRepository.deleteUser(userId);
-
-		// delete linked notes and permissions if they existed
-		if (!notes.isEmpty()) {
-			noteRepository.deleteNotes(notes.stream().map(note -> note.getId()).toList());
-		}
-		if (!userPermissions.isEmpty()) {
-			userPermissionRepository.deleteUserPermissions(userPermissions.stream()
-					.map(userPermission -> userPermission.getId())
-					.toList());
+		try {
+			userRepository.deleteUser(userId);
+			// delete linked notes and permissions if they existed
+			if (!notes.isEmpty()) {
+				noteRepository.deleteNotes(notes.stream().map(note -> note.getId()).toList(), user);
+			}
+			if (!userPermissions.isEmpty()) {
+				userPermissionRepository.deleteUserPermissionsByIds(userPermissions.stream()
+						.map(userPermission -> userPermission.getId())
+						.toList());
+			}
+		} catch (Exception e) {
+			throw new DatabaseTransactionalException("Failed to delete user", e);
 		}
 	}
 }

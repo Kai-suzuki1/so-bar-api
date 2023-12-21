@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import app.diy.note_taking_app.domain.entity.Note;
+import app.diy.note_taking_app.domain.entity.User;
 
 @Repository
 public interface NoteRepository extends JpaRepository<Note, Integer> {
@@ -19,6 +20,10 @@ public interface NoteRepository extends JpaRepository<Note, Integer> {
 	List<Note> findByCreatedUser_IdAndDeletedFlagFalse(Integer id);
 
 	@Modifying
-	@Query("update Note set deletedFlag = true, updatedAt = now() where id in :noteIds")
-	void deleteNotes(@Param("noteIds") List<Integer> noteIds);
+	@Query("update Note set deletedFlag = true, updatedAt = now(), updatedUser = :user where id = :noteId")
+	void deleteNote(@Param("noteId") Integer noteId, @Param("user") User user);
+
+	@Modifying
+	@Query("update Note set deletedFlag = true, updatedAt = now(), updatedUser = :user where id in :noteIds")
+	void deleteNotes(@Param("noteIds") List<Integer> noteIds, @Param("user") User user);
 }

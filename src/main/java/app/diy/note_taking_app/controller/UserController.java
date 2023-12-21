@@ -25,6 +25,6 @@ public class UserController {
 
 	@PatchMapping("/delete")
 	public void deleteUser(@AuthenticationPrincipal User user) {
-		userService.delete(user.getId());
+		userService.delete(user);
 	}
 }
