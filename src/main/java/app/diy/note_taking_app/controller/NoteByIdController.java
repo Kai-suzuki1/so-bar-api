@@ -52,23 +52,30 @@ public class NoteByIdController {
 			Note note,
 			@Validated @RequestBody NoteUpdateRequest request,
 			@AuthenticationPrincipal User user) {
-		Integer userId = user.getId();
-		// if user is shared user, check the permission
-		if (!userId.equals(note.getCreatedUser().getId())
-				&& !userPermissionService.canUpdateNote(note.getId(), userId)) {
-			throw new InsufficientUserAuthorizationException("Not allowed to update this note");
-		}
+		validateUserAuthorization(user.getId(), note);
+
 		return noteService.update(note.getId(), request, user);
 	}
 
 	@PatchMapping("/delete")
 	public void deleteNote(Note note, @AuthenticationPrincipal User user) {
-		Integer userId = user.getId();
-		// if user is shared user, check the permission
+		validateUserAuthorization(user.getId(), note);
+
+		noteService.delete(note, user);
+	}
+
+	/**
+	 * if user is shared user, check the permission and throw
+	 * {@link InsufficientUserAuthorizationException}
+	 * 
+	 * @param userId
+	 * @param note
+	 * @exception InsufficientUserAuthorizationException
+	 */
+	private void validateUserAuthorization(Integer userId, Note note) {
 		if (!userId.equals(note.getCreatedUser().getId())
 				&& !userPermissionService.canUpdateNote(note.getId(), userId)) {
 			throw new InsufficientUserAuthorizationException("Not allowed to update this note");
 		}
-		noteService.delete(note, user);
 	}
 }

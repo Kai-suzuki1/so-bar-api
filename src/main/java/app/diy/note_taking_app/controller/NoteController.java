@@ -26,7 +26,7 @@ public class NoteController {
 		return noteService.getNoteList(user.getId());
 	}
 
-	@PostMapping("/create")
+	@PostMapping
 	public NoteDetailResponse creteNote(@AuthenticationPrincipal User user) {
 		return noteService.create(user);
 	}

@@ -51,7 +51,7 @@ public class JwtServiceImpl implements JwtService {
 				.setClaims(extraClaims)
 				.setSubject(userDetails.getId().toString())
 				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24 * 365)) // expired 1 year and 1000ms
+				.setExpiration(new Date(System.currentTimeMillis() * 1000 * 60 * 60 * 24 * 365)) // expired 1 year
 				.signWith(getSignInKey(), SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -79,7 +79,7 @@ public class JwtServiceImpl implements JwtService {
 	private Claims extractAllClaims(String token) {
 		return Jwts
 				.parserBuilder()
-				.setSigningKey(getSignInKey()) // To create to generate or decode toke, it needs signing key
+				.setSigningKey(getSignInKey()) // To create to generate or decode token, it needs signing key
 				.build()
 				.parseClaimsJws(token) // To parse token
 				.getBody();

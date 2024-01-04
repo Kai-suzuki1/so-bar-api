@@ -65,12 +65,11 @@ public class DefaultExceptionHandler {
 				.path(request.getRequestURI())
 				.message(e.getFieldErrors()
 						.stream()
-						.map((fieldError) -> {
-							return ValidationErrorMessage.builder()
-									.fieldName(fieldError.getField())
-									.detail(fieldError.getDefaultMessage())
-									.build();
-						}).toList())
+						.map(fieldError -> ValidationErrorMessage.builder()
+								.fieldName(fieldError.getField())
+								.detail(fieldError.getDefaultMessage())
+								.build())
+						.toList())
 				.statusCode(HttpStatus.BAD_REQUEST.value())
 				.localDateTime(LocalDateTime.now())
 				.build();
@@ -224,7 +223,7 @@ public class DefaultExceptionHandler {
 	public ResponseEntity<ApiError> handleException(
 			DatabaseTransactionalException e,
 			HttpServletRequest request) {
-		e.printStackTrace();
+
 		ApiError apiError = ApiError.builder()
 				.path(request.getRequestURI())
 				.message(e.getMessage())

@@ -1,6 +1,5 @@
 package app.diy.note_taking_app.controller;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,14 +20,14 @@ public class AuthenticationController {
 	private final AuthenticationService authService;
 
 	@PostMapping("/register")
-	public ResponseEntity<AuthenticationResponse> register(
+	public AuthenticationResponse register(
 			@RequestBody @Validated RegisterRequest request) {
-		return ResponseEntity.ok(authService.register(request));
+		return authService.register(request);
 	}
 
 	@PostMapping("/authenticate")
-	public ResponseEntity<AuthenticationResponse> register(
+	public AuthenticationResponse authenticate(
 			@RequestBody AuthenticationRequest request) {
-		return ResponseEntity.ok(authService.authenticate(request));
+		return authService.authenticate(request);
 	}
 }
