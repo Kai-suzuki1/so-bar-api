@@ -1,0 +1,15 @@
+{
+  "path": "/v1/notes/1",
+  "message": [
+    {
+      "fieldName": "title",
+      "detail": "Title should be 255 words or less"
+    },
+        {
+      "fieldName": "contents",
+      "detail": "Contents should be 65535 words or less"
+    }
+  ],
+  "statusCode": 400,
+  "localDateTime": "2024/01/01 09:00"
+}

@@ -1,0 +1,15 @@
+{
+  "path": "/v1/auth/register",
+  "message": [
+    {
+      "fieldName": "username",
+      "detail": "Entered Username is already Used"
+    },
+    {
+      "fieldName": "email",
+      "detail": "Entered Email is already Used"
+    }
+  ],
+  "statusCode": 400,
+  "localDateTime": "2024/01/01 09:00"
+}

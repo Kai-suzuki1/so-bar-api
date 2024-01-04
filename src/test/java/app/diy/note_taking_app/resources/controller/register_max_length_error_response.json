@@ -1,0 +1,11 @@
+{
+  "path": "/v1/auth/register",
+  "message": [
+    {
+      "fieldName": "username",
+      "detail": "Name should be 120 words or less"
+    }
+  ],
+  "statusCode": 400,
+  "localDateTime": "2024/01/01 09:00"
+}
