@@ -61,11 +61,8 @@ public class NoteControllerTest {
 	private NoteService mockNoteService;
 
 	private User accessUser;
-
 	private MockedStatic<LocalDateTime> mockTime;
-
 	private LocalDateTime fixedTime = LocalDateTime.of(2024, 1, 1, 9, 0); // "2024/01/01 09:00"
-
 	private String JwtToken;
 
 	@BeforeEach
