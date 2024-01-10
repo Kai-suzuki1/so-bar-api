@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -53,16 +52,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		// Checking if the user is not authenticated
 		// *authenticated user does not have to proceed the process below*
 		if (SecurityContextHolder.getContext().getAuthentication() == null) {
-			// Upcast User to UserDetails class
-			UserDetails userDetails = user;
-
 			// Checking if the token is still valid
-			if (jwtService.isTokenValid(jwtToken, userDetails)) {
+			if (jwtService.isTokenValid(jwtToken, user)) {
 				// Update SecurityContextHolder and send the request Dispatcher Servlet
 				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-						userDetails,
+						user,
 						null, // null is because the user is still not authenticated
-						userDetails.getAuthorities());
+						user.getAuthorities());
 
 				// Build details out of the request and update(set) SecurityContextHolder
 				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

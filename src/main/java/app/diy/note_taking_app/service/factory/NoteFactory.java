@@ -22,21 +22,19 @@ public class NoteFactory {
 
 	public List<PreviewNoteResponse> createPreviewNoteResponseList(List<Note> notes) {
 		return notes.stream()
-				.map((note) -> {
-					return PreviewNoteResponse.builder()
-							.id(note.getId())
-							.title(note.getTitle())
-							// Extract beginning of 175 letters for the side menu bar
-							.previewContents(
-									StringUtils.isEmpty(note.getContents()) || note.getContents().length() < previewContentsMaxLength
-											? note.getContents()
-											: note.getContents().substring(0, previewContentsMaxLength))
-							.createdAt(note.getCreatedAt())
-							.createdBy(note.getCreatedUser().getName())
-							.updatedAt(note.getUpdatedAt())
-							.updatedBy(note.getUpdatedUser().getName())
-							.build();
-				})
+				.map(note -> PreviewNoteResponse.builder()
+						.id(note.getId())
+						.title(note.getTitle())
+						// Extract beginning of 175 letters for the side menu bar
+						.previewContents(
+								StringUtils.isEmpty(note.getContents()) || note.getContents().length() < previewContentsMaxLength
+										? note.getContents()
+										: note.getContents().substring(0, previewContentsMaxLength))
+						.createdAt(note.getCreatedAt())
+						.createdBy(note.getCreatedUser().getName())
+						.updatedAt(note.getUpdatedAt())
+						.updatedBy(note.getUpdatedUser().getName())
+						.build())
 				.toList();
 	}
 
@@ -53,13 +51,11 @@ public class NoteFactory {
 				.userIsAuthor(isAuthor)
 				.sharedUsers(isAuthor && !userPermissions.isEmpty()
 						? userPermissions.stream()
-								.map(userPermission -> {
-									return UserAuthorization.builder()
-											.permissionId(userPermission.getId())
-											.userId(userPermission.getUser().getId())
-											.type(userPermission.toPermissionType())
-											.build();
-								})
+								.map(userPermission -> UserAuthorization.builder()
+										.permissionId(userPermission.getId())
+										.userId(userPermission.getUser().getId())
+										.type(userPermission.toPermissionType())
+										.build())
 								.toList()
 						: List.of())
 				.createdAt(note.getCreatedAt())

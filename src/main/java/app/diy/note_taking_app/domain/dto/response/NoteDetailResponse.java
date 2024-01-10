@@ -6,11 +6,9 @@ import java.util.List;
 import app.diy.note_taking_app.domain.dto.UserAuthorization;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @Builder
 public class NoteDetailResponse {

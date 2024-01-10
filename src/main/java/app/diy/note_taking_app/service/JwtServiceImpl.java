@@ -1,6 +1,8 @@
 package app.diy.note_taking_app.service;
 
 import java.security.Key;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +36,12 @@ public class JwtServiceImpl implements JwtService {
 
 	@Override
 	public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-		final Claims claims = extractAllClaims(token);
+		final Claims claims = Jwts
+				.parserBuilder()
+				.setSigningKey(getSignInKey()) // To create to generate or decode token, it needs signing key
+				.build()
+				.parseClaimsJws(token) // To parse token
+				.getBody();
 		return claimsResolver.apply(claims); // extract all claims method
 	}
 
@@ -46,12 +53,14 @@ public class JwtServiceImpl implements JwtService {
 
 	@Override
 	public String generateToken(Map<String, Object> extraClaims, User userDetails) {
+		Clock systemClock = Clock.systemUTC();
+
 		return Jwts
 				.builder()
 				.setClaims(extraClaims)
 				.setSubject(userDetails.getId().toString())
-				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() * 1000 * 60 * 60 * 24 * 365)) // expired 1 year
+				.setIssuedAt(Date.from(Instant.now(systemClock)))
+				.setExpiration(Date.from(Instant.now(systemClock).plusSeconds(31536000))) // expired 1 year
 				.signWith(getSignInKey(), SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -65,24 +74,15 @@ public class JwtServiceImpl implements JwtService {
 				.getId()
 				.toString();
 
-		return (userIdInToken.equals(userIdFromDb)) && !isTokenExpired(token);
+		return userIdInToken.equals(userIdFromDb) && !isTokenExpired(token);
 	}
 
 	private boolean isTokenExpired(String token) {
-		return extractExpiration(token).before(new Date());
+		return extractExpiration(token).before(Date.from(Instant.now(Clock.systemUTC())));
 	}
 
 	private Date extractExpiration(String token) {
 		return extractClaim(token, Claims::getExpiration);
-	}
-
-	private Claims extractAllClaims(String token) {
-		return Jwts
-				.parserBuilder()
-				.setSigningKey(getSignInKey()) // To create to generate or decode token, it needs signing key
-				.build()
-				.parseClaimsJws(token) // To parse token
-				.getBody();
 	}
 
 	private Key getSignInKey() {
