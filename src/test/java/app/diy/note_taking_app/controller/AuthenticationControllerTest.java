@@ -53,7 +53,6 @@ import io.jsonwebtoken.security.Keys;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-// @TestPropertySource("classpath:secrets.properties")
 public class AuthenticationControllerTest {
 
 	@Autowired
@@ -75,11 +74,10 @@ public class AuthenticationControllerTest {
 	private JwtService mockJwtService;
 
 	private AuthenticationResponse authenticationResponse;
-
 	private RegisterRequest registerRequest;
 
 	@BeforeEach
-	public void init() {
+	void init() {
 		authenticationResponse = AuthenticationResponse.builder()
 				.token(Jwts.builder()
 						.setClaims(new HashMap<>())
@@ -98,7 +96,7 @@ public class AuthenticationControllerTest {
 	}
 
 	@Test
-	public void register_GivenNormalRequest_Successful() throws Exception {
+	void register_GivenNormalRequest_Successful() throws Exception {
 		when(mockUserRepository.existsByNameAndDeletedFlagFalse(any())).thenReturn(false);
 		when(mockUserRepository.existsByEmailAndDeletedFlagFalse(any())).thenReturn(false);
 		when(mockAuthService.register(any())).thenReturn(authenticationResponse);
@@ -115,7 +113,7 @@ public class AuthenticationControllerTest {
 	}
 
 	@Test
-	public void register_GivenNormalRequest_InternalServerError() throws Exception {
+	void register_GivenNormalRequest_InternalServerError() throws Exception {
 		when(mockUserRepository.existsByNameAndDeletedFlagFalse(any())).thenReturn(false);
 		when(mockUserRepository.existsByEmailAndDeletedFlagFalse(any())).thenReturn(false);
 		when(mockAuthService.register(any())).thenThrow(new DatabaseTransactionalException(anyString()));
@@ -139,7 +137,7 @@ public class AuthenticationControllerTest {
 	@ParameterizedTest
 	@ValueSource(strings = { " " })
 	@NullAndEmptySource
-	public void register_BlankValues_BadRequest(String testVal) throws Exception {
+	void register_BlankValues_BadRequest(String testVal) throws Exception {
 		// change the test data
 		registerRequest.setEmail(testVal);
 		registerRequest.setUsername(testVal);
@@ -165,7 +163,7 @@ public class AuthenticationControllerTest {
 	}
 
 	@Test
-	public void register_MaxLength_BadRequest() throws Exception {
+	void register_MaxLength_BadRequest() throws Exception {
 		// change the test data
 		registerRequest.setUsername(RandomStringUtils.random(121, true, true));
 
@@ -189,7 +187,7 @@ public class AuthenticationControllerTest {
 	}
 
 	@Test
-	public void register_BelowMaxLength_Successful() throws Exception {
+	void register_BelowMaxLength_Successful() throws Exception {
 		when(mockUserRepository.existsByNameAndDeletedFlagFalse(any())).thenReturn(false);
 		when(mockUserRepository.existsByEmailAndDeletedFlagFalse(any())).thenReturn(false);
 		when(mockAuthService.register(any())).thenReturn(authenticationResponse);
@@ -209,7 +207,7 @@ public class AuthenticationControllerTest {
 			"register_duplicate_username_error_response.json, true, false",
 			"register_duplicate_email_username_error_response.json, true, true",
 	})
-	public void register_DuplicatePattern_BadRequest(
+	void register_DuplicatePattern_BadRequest(
 			String fileName,
 			boolean isUsernameDuplicate,
 			boolean isEmailDuplicate) throws Exception {
@@ -240,7 +238,7 @@ public class AuthenticationControllerTest {
 			"invalid_domain.com",
 			"missing_dot_com"
 	})
-	public void register_EmailInvalidPattern_BadRequest(String emailVal) throws Exception {
+	void register_EmailInvalidPattern_BadRequest(String emailVal) throws Exception {
 		// change the test data
 		registerRequest.setEmail(emailVal);
 
@@ -264,7 +262,7 @@ public class AuthenticationControllerTest {
 	}
 
 	@Test
-	public void authenticate_GivenNormalRequest_Successful() throws Exception {
+	void authenticate_GivenNormalRequest_Successful() throws Exception {
 		when(mockAuthService.authenticate(any())).thenReturn(authenticationResponse);
 
 		mockMvc.perform(
@@ -284,7 +282,7 @@ public class AuthenticationControllerTest {
 	}
 
 	@Test
-	public void authenticate_GivenNormalRequest_NotFound() throws Exception {
+	void authenticate_GivenNormalRequest_NotFound() throws Exception {
 		when(mockAuthService.authenticate(any())).thenThrow(new UserNotFoundException(anyString()));
 
 		mockMvc.perform(

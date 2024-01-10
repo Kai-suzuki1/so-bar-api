@@ -90,7 +90,7 @@ public class NoteByIdControllerTest {
 	private String JwtToken;
 
 	@BeforeEach
-	public void init() {
+	void init() {
 		mockTime = Mockito.mockStatic(LocalDateTime.class, Mockito.CALLS_REAL_METHODS);
 		mockTime.when(LocalDateTime::now).thenReturn(fixedTime);
 
@@ -149,12 +149,12 @@ public class NoteByIdControllerTest {
 	}
 
 	@AfterEach
-	public void cleanUpEach() {
+	void cleanUpEach() {
 		mockTime.close();
 	}
 
 	@Test
-	public void getNoteDetail_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
+	void getNoteDetail_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
 		when(mockNoteService.getNoteDetail(any(), any())).thenReturn(noteDetailResponse);
 
@@ -170,7 +170,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void getNoteDetail_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
+	void getNoteDetail_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
 		noteDetailResponse.setUserIsAuthor(false);
 		// noteDetailResponse.setSharedUsers();
 
@@ -189,7 +189,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void getNoteDetail_NonExistentNote_NotFound() throws Exception {
+	void getNoteDetail_NonExistentNote_NotFound() throws Exception {
 		when(mockNoteService.getUndeletedNote(any())).thenThrow(new NoteNotFoundException(anyString()));
 
 		mockMvc.perform(
@@ -224,7 +224,7 @@ public class NoteByIdControllerTest {
 
 	@ParameterizedTest
 	@MethodSource({ "unsharedUserProvider" })
-	public void getNoteDetail_UserIsUnsharedUser_Forbidden(List<UserAuthorization> sharedUsers) throws Exception {
+	void getNoteDetail_UserIsUnsharedUser_Forbidden(List<UserAuthorization> sharedUsers) throws Exception {
 		noteDetailResponse.setUserIsAuthor(false);
 		noteDetailResponse.setSharedUsers(sharedUsers);
 
@@ -248,7 +248,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void updateNote_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
+	void updateNote_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
 		when(mockNoteService.update(any(), any(), any())).thenReturn(noteDetailResponse);
 
@@ -266,7 +266,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void updateNote_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
+	void updateNote_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
 		note.setCreatedUser(User.builder().id(2).build());
 
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
@@ -287,7 +287,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void updateNote_InsufficientAuthorization_Forbidden() throws Exception {
+	void updateNote_InsufficientAuthorization_Forbidden() throws Exception {
 		note.setCreatedUser(User.builder().id(2).build());
 
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
@@ -312,7 +312,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void updateNote_DatabaseTransactionalException_InternalServerError() throws Exception {
+	void updateNote_DatabaseTransactionalException_InternalServerError() throws Exception {
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
 		when(mockUserPermissionService.canUpdateNote(note.getId(), accessUser.getId())).thenReturn(true);
 		when(mockNoteService.update(any(), any(), any())).thenThrow(new DatabaseTransactionalException(""));
@@ -336,7 +336,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void updateNote_MaxLength_BadRequest() throws Exception {
+	void updateNote_MaxLength_BadRequest() throws Exception {
 		noteUpdateRequest.setTitle(RandomStringUtils.random(256, true, true));
 		noteUpdateRequest.setContents(RandomStringUtils.random(65536, true, true));
 
@@ -354,7 +354,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void updateNote_BelowMaxLength_Successful() throws Exception {
+	void updateNote_BelowMaxLength_Successful() throws Exception {
 		// to avoid UnfinishedStubbingException due to the nested mock, use a variable
 		NoteDetailResponse returnVal = objectMapper.readValue(StringUtil.readFile(
 				"updateNote_max_length_success_response.json"),
@@ -375,7 +375,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void deleteNote_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
+	void deleteNote_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
 		doNothing().when(mockNoteService).delete(note, accessUser);
 
@@ -390,7 +390,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void deleteNote_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
+	void deleteNote_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
 		note.setCreatedUser(User.builder().id(2).build());
 
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
@@ -408,7 +408,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void deleteNote_InsufficientAuthorization_Forbidden() throws Exception {
+	void deleteNote_InsufficientAuthorization_Forbidden() throws Exception {
 		note.setCreatedUser(User.builder().id(2).build());
 
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
@@ -433,7 +433,7 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	public void deleteNote_DatabaseTransactionalException_InternalServerError() throws Exception {
+	void deleteNote_DatabaseTransactionalException_InternalServerError() throws Exception {
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
 		when(mockUserPermissionService.canUpdateNote(note.getId(), accessUser.getId())).thenReturn(true);
 		doThrow(new DatabaseTransactionalException("")).when(mockNoteService).delete(note, accessUser);

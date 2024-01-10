@@ -69,7 +69,7 @@ public class NoteControllerTest {
 	private String JwtToken;
 
 	@BeforeEach
-	public void init() {
+	void init() {
 		mockTime = Mockito.mockStatic(LocalDateTime.class, Mockito.CALLS_REAL_METHODS);
 		mockTime.when(LocalDateTime::now).thenReturn(fixedTime);
 
@@ -93,12 +93,12 @@ public class NoteControllerTest {
 	}
 
 	@AfterEach
-	public void cleanUpEach() {
+	void cleanUpEach() {
 		mockTime.close();
 	}
 
 	@Test
-	public void getNoteList_ReturnListOfPreviewNoteResponse_Successful() throws Exception {
+	void getNoteList_ReturnListOfPreviewNoteResponse_Successful() throws Exception {
 		List<PreviewNoteResponse> previewNoteResponses = List.of(PreviewNoteResponse.builder()
 				.id(1)
 				.title("Title")
@@ -123,7 +123,7 @@ public class NoteControllerTest {
 	}
 
 	@Test
-	public void getNoteList_ReturnEmptyList_Successful() throws Exception {
+	void getNoteList_ReturnEmptyList_Successful() throws Exception {
 		List<PreviewNoteResponse> previewNoteResponses = List.of();
 
 		when(mockNoteService.getNoteList(accessUser.getId())).thenReturn(previewNoteResponses);
@@ -140,7 +140,7 @@ public class NoteControllerTest {
 	}
 
 	@Test
-	public void createNote_ReturnNoteDetailResponse_Successful() throws Exception {
+	void createNote_ReturnNoteDetailResponse_Successful() throws Exception {
 		// values are defined in case where the user is author
 		NoteDetailResponse noteDetailResponse = NoteDetailResponse.builder()
 				.id(1)
@@ -171,7 +171,7 @@ public class NoteControllerTest {
 	}
 
 	@Test
-	public void createNote_DatabaseTransactionalException_InternalServerError() throws Exception {
+	void createNote_DatabaseTransactionalException_InternalServerError() throws Exception {
 		when(mockNoteService.create(accessUser)).thenThrow(new DatabaseTransactionalException(""));
 
 		mockMvc.perform(
