@@ -40,7 +40,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 @ExtendWith(SpringExtension.class)
-@EnableConfigurationProperties(value = NoteTakingAppConfigProperties.class)
+@EnableConfigurationProperties(NoteTakingAppConfigProperties.class)
 @TestPropertySource("classpath:secrets.properties")
 public class AuthenticationServiceTest {
 
