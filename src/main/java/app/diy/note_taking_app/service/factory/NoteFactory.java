@@ -2,7 +2,6 @@ package app.diy.note_taking_app.service.factory;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import app.diy.note_taking_app.domain.dto.UserAuthorization;
@@ -18,22 +17,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NoteFactory {
 
-	private static final int previewContentsMaxLength = 175;
-
 	public List<PreviewNoteResponse> createPreviewNoteResponseList(List<Note> notes) {
 		return notes.stream()
 				.map(note -> PreviewNoteResponse.builder()
 						.id(note.getId())
 						.title(note.getTitle())
-						// Extract beginning of 175 letters for the side menu bar
-						.previewContents(
-								StringUtils.isEmpty(note.getContents()) || note.getContents().length() < previewContentsMaxLength
-										? note.getContents()
-										: note.getContents().substring(0, previewContentsMaxLength))
+						.contents(note.getContents())
 						.createdAt(note.getCreatedAt())
 						.createdBy(note.getCreatedUser().getName())
 						.updatedAt(note.getUpdatedAt())
 						.updatedBy(note.getUpdatedUser().getName())
+						.deletedFlag(note.isDeletedFlag())
 						.build())
 				.toList();
 	}

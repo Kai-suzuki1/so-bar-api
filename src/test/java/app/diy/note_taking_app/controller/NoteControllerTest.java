@@ -99,7 +99,7 @@ public class NoteControllerTest {
 		List<PreviewNoteResponse> previewNoteResponses = List.of(PreviewNoteResponse.builder()
 				.id(1)
 				.title("Title")
-				.previewContents("Preview Contents")
+				.contents("Preview Contents")
 				.createdAt(LocalDateTime.now())
 				.createdBy("tester")
 				.updatedAt(LocalDateTime.now())

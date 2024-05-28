@@ -13,9 +13,10 @@ public class PreviewNoteResponse {
 
 	private int id;
 	private String title;
-	private String previewContents;
+	private String contents;
 	private LocalDateTime createdAt;
 	private String createdBy;
 	private LocalDateTime updatedAt;
 	private String updatedBy;
+	private boolean deletedFlag;
 }
