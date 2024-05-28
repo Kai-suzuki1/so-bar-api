@@ -19,12 +19,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @SuperBuilder
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User extends TimeStampEntity implements UserDetails {

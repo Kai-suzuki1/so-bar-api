@@ -10,6 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
@@ -17,6 +18,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @MappedSuperclass
 @SuperBuilder
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class TimeStampEntity {
 
