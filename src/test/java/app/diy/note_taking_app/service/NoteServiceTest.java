@@ -88,10 +88,20 @@ public class NoteServiceTest {
 				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
 				.updatedUser(secondUser)
 				.build();
+		Note deletedNote = Note.builder()
+				.id(2)
+				.title("Title 2")
+				.contents("Second note")
+				.createdAt(LocalDateTime.of(2024, 1, 1, 9, 0))
+				.createdUser(firstUser)
+				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
+				.updatedUser(secondUser)
+				.deletedFlag(true)
+				.build();
 		PreviewNoteResponse firstPreviewNoteResponse = PreviewNoteResponse.builder()
 				.id(firstNote.getId())
 				.title(firstNote.getTitle())
-				.previewContents(firstNote.getContents())
+				.contents(firstNote.getContents())
 				.createdAt(firstNote.getCreatedAt())
 				.createdBy(firstNote.getCreatedUser().getName())
 				.updatedAt(firstNote.getUpdatedAt())
@@ -100,11 +110,21 @@ public class NoteServiceTest {
 		PreviewNoteResponse secondPreviewNoteResponse = PreviewNoteResponse.builder()
 				.id(secondNote.getId())
 				.title(secondNote.getTitle())
-				.previewContents(secondNote.getContents())
+				.contents(secondNote.getContents())
 				.createdAt(secondNote.getCreatedAt())
 				.createdBy(secondNote.getCreatedUser().getName())
 				.updatedAt(secondNote.getUpdatedAt())
 				.updatedBy(secondNote.getUpdatedUser().getName())
+				.build();
+		PreviewNoteResponse previewNoteResponseWithDeletedNote = PreviewNoteResponse.builder()
+				.id(deletedNote.getId())
+				.title(deletedNote.getTitle())
+				.contents(deletedNote.getContents())
+				.createdAt(deletedNote.getCreatedAt())
+				.createdBy(deletedNote.getCreatedUser().getName())
+				.updatedAt(deletedNote.getUpdatedAt())
+				.updatedBy(deletedNote.getUpdatedUser().getName())
+				.deletedFlag(deletedNote.isDeletedFlag())
 				.build();
 
 		return Stream.of(
@@ -124,6 +144,10 @@ public class NoteServiceTest {
 						List.of(UserPermission.builder().note(secondNote).deletedFlag(false).build()),
 						List.of(secondPreviewNoteResponse)),
 				Arguments.of(
+						List.of(deletedNote),
+						List.of(UserPermission.builder().note(secondNote).deletedFlag(false).build()),
+						List.of(previewNoteResponseWithDeletedNote, secondPreviewNoteResponse)),
+				Arguments.of(
 						List.of(firstNote),
 						List.of(UserPermission.builder().note(secondNote).deletedFlag(false).build()),
 						List.of(firstPreviewNoteResponse, secondPreviewNoteResponse)),
@@ -137,8 +161,9 @@ public class NoteServiceTest {
 	 * 1. Found notesWrittenByUser but notesWrittenByOther
 	 * 2. Found notesWrittenByUser and notesWrittenByOther that note is deleted
 	 * 3. Found notesWrittenByOther but notesWrittenByUser
-	 * 4. Found notesWrittenByOther and notesWrittenByUser
-	 * 5. Found none of notesWrittenByOther and notesWrittenByUser
+	 * 4. Found notesWrittenByOther and deleted notesWrittenByUser
+	 * 5. Found notesWrittenByOther and notesWrittenByUser
+	 * 6. Found none of notesWrittenByOther and notesWrittenByUser
 	 */
 	@ParameterizedTest
 	@MethodSource({ "unsharedUserProvider" })
@@ -146,7 +171,7 @@ public class NoteServiceTest {
 			List<Note> notes,
 			List<UserPermission> userPermissions,
 			List<PreviewNoteResponse> expected) {
-		when(mockNoteRepository.findByCreatedUser_IdAndDeletedFlagFalse(anyInt())).thenReturn(notes);
+		when(mockNoteRepository.findByCreatedUser_Id(anyInt())).thenReturn(notes);
 		when(mockUserPermissionRepository.findByUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
 

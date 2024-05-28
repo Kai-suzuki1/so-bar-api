@@ -17,6 +17,8 @@ public interface NoteRepository extends JpaRepository<Note, Integer> {
 
 	Optional<Note> findByIdAndDeletedFlagFalse(Integer id);
 
+	List<Note> findByCreatedUser_Id(Integer id);
+
 	List<Note> findByCreatedUser_IdAndDeletedFlagFalse(Integer id);
 
 	@Modifying

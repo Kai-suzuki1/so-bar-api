@@ -32,7 +32,7 @@ public class NoteServiceImpl implements NoteService {
 
 	@Override
 	public List<PreviewNoteResponse> getNoteList(Integer userId) {
-		List<Note> notesWrittenByUser = noteRepository.findByCreatedUser_IdAndDeletedFlagFalse(userId);
+		List<Note> notesWrittenByUser = noteRepository.findByCreatedUser_Id(userId);
 		List<Note> notesWrittenByOther = userPermissionRepository
 				.findByUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(userId)
 				.stream()
