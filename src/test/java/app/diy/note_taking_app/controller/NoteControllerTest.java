@@ -104,6 +104,8 @@ public class NoteControllerTest {
 				.createdBy("tester")
 				.updatedAt(LocalDateTime.now())
 				.updatedBy("sampler")
+				.deletedFlag(false)
+				.deletableFlag(true)
 				.build());
 
 		when(mockNoteService.getNoteList(accessUser.getId())).thenReturn(previewNoteResponses);

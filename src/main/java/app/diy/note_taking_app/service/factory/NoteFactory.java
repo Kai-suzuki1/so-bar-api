@@ -11,13 +11,16 @@ import app.diy.note_taking_app.domain.dto.response.PreviewNoteResponse;
 import app.diy.note_taking_app.domain.entity.Note;
 import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.domain.entity.UserPermission;
+import app.diy.note_taking_app.repository.UserPermissionRepository;
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class NoteFactory {
 
-	public List<PreviewNoteResponse> createPreviewNoteResponseList(List<Note> notes) {
+	private final UserPermissionRepository userPermissionRepository;
+
+	public List<PreviewNoteResponse> createPreviewNoteResponseList(List<Note> notes, Integer userId) {
 		return notes.stream()
 				.map(note -> PreviewNoteResponse.builder()
 						.id(note.getId())
@@ -28,6 +31,14 @@ public class NoteFactory {
 						.updatedAt(note.getUpdatedAt())
 						.updatedBy(note.getUpdatedUser().getName())
 						.deletedFlag(note.isDeletedFlag())
+						// if note is note deleted and
+						// log-in user is author or shared user with read-write permission, return true
+						.deletableFlag(!note.isDeletedFlag()
+								&& (note.getCreatedUser().getId() == userId
+										|| userPermissionRepository
+												.findByNote_IdAndUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(note.getId(), userId)
+												.filter(userPermission -> userPermission.toPermissionType().isReadWrite())
+												.isPresent()))
 						.build())
 				.toList();
 	}

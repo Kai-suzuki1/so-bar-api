@@ -24,7 +24,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import app.diy.note_taking_app.domain.dto.UserAuthorization;
@@ -53,13 +52,13 @@ public class NoteServiceTest {
 	@Mock
 	private NoteRepository mockNoteRepository;
 
-	@Spy
-	private NoteFactory spyNoteFactory;
+	@Mock
+	private NoteFactory mockNoteFactory;
 
 	@Mock
 	private EntityManager mockEntityManager;
 
-	static Stream<Arguments> unsharedUserProvider() {
+	private static Stream<Arguments> getNoteListPatternProvider() {
 		User firstUser = User.builder()
 				.id(1)
 				.name("First user")
@@ -90,8 +89,8 @@ public class NoteServiceTest {
 				.build();
 		Note deletedNote = Note.builder()
 				.id(2)
-				.title("Title 2")
-				.contents("Second note")
+				.title("Title Deleted")
+				.contents("Deleted note")
 				.createdAt(LocalDateTime.of(2024, 1, 1, 9, 0))
 				.createdUser(firstUser)
 				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
@@ -106,6 +105,7 @@ public class NoteServiceTest {
 				.createdBy(firstNote.getCreatedUser().getName())
 				.updatedAt(firstNote.getUpdatedAt())
 				.updatedBy(firstNote.getUpdatedUser().getName())
+				.deletedFlag(false)
 				.build();
 		PreviewNoteResponse secondPreviewNoteResponse = PreviewNoteResponse.builder()
 				.id(secondNote.getId())
@@ -129,53 +129,98 @@ public class NoteServiceTest {
 
 		return Stream.of(
 				Arguments.of(
+						firstUser.getId(),
 						List.of(firstNote),
 						List.of(),
+						List.of(firstNote),
 						List.of(firstPreviewNoteResponse)),
 				Arguments.of(
+						firstUser.getId(),
 						List.of(firstNote),
 						List.of(UserPermission.builder()
 								.note(Note.builder().deletedFlag(true).build())
-								.deletedFlag(true)
+								.deletedFlag(false)
 								.build()),
+						List.of(firstNote),
 						List.of(firstPreviewNoteResponse)),
 				Arguments.of(
+						secondUser.getId(),
 						List.of(),
 						List.of(UserPermission.builder().note(secondNote).deletedFlag(false).build()),
+						List.of(secondNote),
 						List.of(secondPreviewNoteResponse)),
 				Arguments.of(
+						firstUser.getId(),
 						List.of(deletedNote),
 						List.of(UserPermission.builder().note(secondNote).deletedFlag(false).build()),
+						List.of(deletedNote, secondNote),
 						List.of(previewNoteResponseWithDeletedNote, secondPreviewNoteResponse)),
 				Arguments.of(
+						firstUser.getId(),
+						List.of(deletedNote),
+						List.of(UserPermission.builder()
+								.note(Note.builder()
+										.deletedFlag(true)
+										.build())
+								.deletedFlag(false)
+								.build()),
+						List.of(deletedNote),
+						List.of(previewNoteResponseWithDeletedNote)),
+				Arguments.of(
+						firstUser.getId(),
 						List.of(firstNote),
 						List.of(UserPermission.builder().note(secondNote).deletedFlag(false).build()),
-						List.of(firstPreviewNoteResponse, secondPreviewNoteResponse)),
-				Arguments.of(
-						List.of(),
-						List.of(),
-						List.of()));
+						List.of(firstNote, secondNote),
+						List.of(firstPreviewNoteResponse, secondPreviewNoteResponse)));
 	}
 
 	/*
-	 * 1. Found notesWrittenByUser but notesWrittenByOther
+	 * 1. Found notesWrittenByUser but none of notesWrittenByOther
 	 * 2. Found notesWrittenByUser and notesWrittenByOther that note is deleted
-	 * 3. Found notesWrittenByOther but notesWrittenByUser
+	 * 3. Found notesWrittenByOther but none of notesWrittenByUser
 	 * 4. Found notesWrittenByOther and deleted notesWrittenByUser
-	 * 5. Found notesWrittenByOther and notesWrittenByUser
-	 * 6. Found none of notesWrittenByOther and notesWrittenByUser
+	 * 5. Found both deleted notesWrittenByUser and notesWrittenByOther
+	 * 6. Found both notesWrittenByOther and notesWrittenByUser
 	 */
 	@ParameterizedTest
-	@MethodSource({ "unsharedUserProvider" })
-	void getNoteList_GivenNormalToken_ReturnSubject(
-			List<Note> notes,
+	@MethodSource({ "getNoteListPatternProvider" })
+	void getNoteList_GivenNormalToken_ReturnPreviewNoteResponse(
+			Integer userId,
+			List<Note> notesWrittenByUser,
 			List<UserPermission> userPermissions,
+			List<Note> allNotes,
 			List<PreviewNoteResponse> expected) {
-		when(mockNoteRepository.findByCreatedUser_Id(anyInt())).thenReturn(notes);
+		when(mockNoteRepository.findByCreatedUser_Id(userId)).thenReturn(notesWrittenByUser);
+		when(mockUserPermissionRepository.findByUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(userId))
+				.thenReturn(userPermissions);
+		when(mockNoteFactory.createPreviewNoteResponseList(allNotes, userId)).thenReturn(expected);
+
+		assertArrayEquals(expected.toArray(), target.getNoteList(userId).toArray());
+	}
+
+	private static Stream<Arguments> getNoteListEmptyListProvider() {
+		return Stream.of(
+				Arguments.of(
+						List.of(),
+						List.of()),
+				Arguments.of(
+						List.of(),
+						List.of(UserPermission.builder()
+								.note(Note.builder().deletedFlag(true).build())
+								.deletedFlag(false)
+								.build())));
+	}
+
+	@ParameterizedTest
+	@MethodSource({ "getNoteListEmptyListProvider" })
+	void getNoteList_GivenNormalToken_ReturnEmptyList(
+			List<Note> notesWrittenByUser,
+			List<UserPermission> userPermissions) {
+		when(mockNoteRepository.findByCreatedUser_Id(anyInt())).thenReturn(notesWrittenByUser);
 		when(mockUserPermissionRepository.findByUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
 
-		assertArrayEquals(expected.toArray(), target.getNoteList(1).toArray());
+		assertArrayEquals(List.of().toArray(), target.getNoteList(1).toArray());
 	}
 
 	@Test
@@ -232,13 +277,22 @@ public class NoteServiceTest {
 
 		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
+		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 1))
+				.thenReturn(expected);
 
 		assertEquals(expected, target.getNoteDetail(note, 1));
 	}
 
 	@Test
 	void create_GivenNormalRequest_ReturnNoteDetailResponse() {
-		Note note = Note.builder()
+		User user = User.builder().id(1).build();
+		Note templateNote = Note.builder()
+				.title("")
+				.contents("")
+				.createdUser(user)
+				.updatedUser(user)
+				.build();
+		Note savedNote = Note.builder()
 				.id(1)
 				.title("Title 1")
 				.contents("First note")
@@ -249,20 +303,22 @@ public class NoteServiceTest {
 				.updatedUser(User.builder().name("tester").build())
 				.build();
 		NoteDetailResponse expected = NoteDetailResponse.builder()
-				.id(note.getId())
-				.title(note.getTitle())
-				.contents(note.getContents())
+				.id(savedNote.getId())
+				.title(savedNote.getTitle())
+				.contents(savedNote.getContents())
 				.userIsAuthor(true)
 				.sharedUsers(List.of())
-				.createdAt(note.getCreatedAt())
-				.createdBy(note.getCreatedUser().getName())
-				.updatedAt(note.getUpdatedAt())
-				.updatedBy(note.getUpdatedUser().getName())
+				.createdAt(savedNote.getCreatedAt())
+				.createdBy(savedNote.getCreatedUser().getName())
+				.updatedAt(savedNote.getUpdatedAt())
+				.updatedBy(savedNote.getUpdatedUser().getName())
 				.build();
 
-		when(mockNoteRepository.save(any(Note.class))).thenReturn(note);
+		when(mockNoteFactory.createNote(user)).thenReturn(templateNote);
+		when(mockNoteRepository.save(templateNote)).thenReturn(savedNote);
+		when(mockNoteFactory.creteNoteDetailResponse(savedNote, 1)).thenReturn(expected);
 
-		assertEquals(expected, target.create(User.builder().id(1).build()));
+		assertEquals(expected, target.create(user));
 	}
 
 	@Test
@@ -287,10 +343,33 @@ public class NoteServiceTest {
 				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
 				.updatedUser(User.builder().name("tester").build())
 				.build();
+		NoteUpdateRequest request = NoteUpdateRequest.builder()
+				.title("Updated Title")
+				.contents("Updated note")
+				.build();
+		User user = User.builder()
+				.id(1)
+				.build();
+		Note updatedNote = Note.builder()
+				.id(note.getId())
+				.title(request.getTitle())
+				.contents(request.getContents())
+				.updatedUser(user)
+				.build();
+		Note savedNote = Note.builder()
+				.id(note.getId())
+				.title(updatedNote.getTitle())
+				.contents(updatedNote.getContents())
+				.deletedFlag(note.isDeletedFlag())
+				.createdAt(note.getCreatedAt())
+				.createdUser(note.getCreatedUser())
+				.updatedAt(note.getUpdatedAt())
+				.updatedUser(note.getUpdatedUser())
+				.build();
 		NoteDetailResponse expected = NoteDetailResponse.builder()
 				.id(note.getId())
-				.title(note.getTitle())
-				.contents(note.getContents())
+				.title(request.getTitle())
+				.contents(request.getContents())
 				.userIsAuthor(true)
 				.sharedUsers(List.of())
 				.createdAt(note.getCreatedAt())
@@ -299,20 +378,21 @@ public class NoteServiceTest {
 				.updatedBy(note.getUpdatedUser().getName())
 				.build();
 
-		when(mockNoteRepository.saveAndFlush(any(Note.class))).thenReturn(note);
-		doNothing().when(mockEntityManager).refresh(note);
+		when(mockNoteFactory.updateNote(note.getId(), request, user)).thenReturn(updatedNote);
+		when(mockNoteRepository.saveAndFlush(updatedNote)).thenReturn(savedNote);
+		doNothing().when(mockEntityManager).refresh(savedNote);
+		when(mockNoteFactory.creteNoteDetailResponse(
+				savedNote,
+				List.of(),
+				user.getId()))
+				.thenReturn(expected);
 		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(List.of());
 
 		assertEquals(expected, target.update(
 				note.getId(),
-				NoteUpdateRequest.builder()
-						.title("Title 1")
-						.contents("First note")
-						.build(),
-				User.builder()
-						.id(1)
-						.build()));
+				request,
+				user));
 	}
 
 	@Test

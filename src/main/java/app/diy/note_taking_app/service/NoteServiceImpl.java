@@ -44,10 +44,11 @@ public class NoteServiceImpl implements NoteService {
 			return List.of();
 		}
 
-		return noteFactory.createPreviewNoteResponseList(Stream
-				.of(notesWrittenByUser, notesWrittenByOther)
-				.flatMap(notes -> notes.stream())
-				.collect(Collectors.toList()));
+		return noteFactory.createPreviewNoteResponseList(
+				Stream.of(notesWrittenByUser, notesWrittenByOther)
+						.flatMap(notes -> notes.stream())
+						.collect(Collectors.toList()),
+				userId);
 	}
 
 	@Override

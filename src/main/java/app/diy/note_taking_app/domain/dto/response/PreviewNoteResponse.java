@@ -19,4 +19,5 @@ public class PreviewNoteResponse {
 	private LocalDateTime updatedAt;
 	private String updatedBy;
 	private boolean deletedFlag;
+	private boolean deletableFlag;
 }
