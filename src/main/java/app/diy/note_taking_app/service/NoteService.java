@@ -14,7 +14,7 @@ public interface NoteService {
 
 	Note getUndeletedNote(Integer noteId);
 
-	NoteDetailResponse getNoteDetail(Note note, Integer userId);
+	NoteDetailResponse getNoteDetail(Integer noteId, Integer userId);
 
 	NoteDetailResponse create(User user);
 

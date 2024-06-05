@@ -22,4 +22,5 @@ public class NoteDetailResponse {
 	private String createdBy;
 	private LocalDateTime updatedAt;
 	private String updatedBy;
+	private boolean deletedFlag;
 }

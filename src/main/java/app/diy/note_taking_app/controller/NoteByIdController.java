@@ -33,8 +33,8 @@ public class NoteByIdController {
 	}
 
 	@GetMapping
-	public NoteDetailResponse getNoteDetail(Note note, @AuthenticationPrincipal User user) {
-		NoteDetailResponse noteDetail = noteService.getNoteDetail(note, user.getId());
+	public NoteDetailResponse getNoteDetail(@PathVariable("noteId") Integer noteId, @AuthenticationPrincipal User user) {
+		NoteDetailResponse noteDetail = noteService.getNoteDetail(noteId, user.getId());
 		// Throw exception if user is not author and does not have authorization
 		if (!noteDetail.isUserIsAuthor()
 				&& (noteDetail.getSharedUsers().isEmpty() || noteDetail.getSharedUsers().stream()

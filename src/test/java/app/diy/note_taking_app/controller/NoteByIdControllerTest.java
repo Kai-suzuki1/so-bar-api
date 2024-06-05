@@ -150,7 +150,7 @@ public class NoteByIdControllerTest {
 	@Test
 	void getNoteDetail_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
-		when(mockNoteService.getNoteDetail(any(), any())).thenReturn(noteDetailResponse);
+		when(mockNoteService.getNoteDetail(any(Integer.class), any(Integer.class))).thenReturn(noteDetailResponse);
 
 		mockMvc.perform(
 				get("/v1/notes/1")
@@ -169,7 +169,7 @@ public class NoteByIdControllerTest {
 		// noteDetailResponse.setSharedUsers();
 
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
-		when(mockNoteService.getNoteDetail(any(), any())).thenReturn(noteDetailResponse);
+		when(mockNoteService.getNoteDetail(any(Integer.class), any(Integer.class))).thenReturn(noteDetailResponse);
 
 		mockMvc.perform(
 				get("/v1/notes/1")

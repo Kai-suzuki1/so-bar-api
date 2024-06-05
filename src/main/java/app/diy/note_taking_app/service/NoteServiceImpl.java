@@ -58,7 +58,9 @@ public class NoteServiceImpl implements NoteService {
 	}
 
 	@Override
-	public NoteDetailResponse getNoteDetail(Note note, Integer userId) {
+	public NoteDetailResponse getNoteDetail(Integer noteId, Integer userId) {
+		Note note = noteRepository.findById(noteId)
+				.orElseThrow(() -> new NoteNotFoundException("Note was not found"));
 		List<UserPermission> userPermissions = userPermissionRepository
 				.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(note.getId());
 

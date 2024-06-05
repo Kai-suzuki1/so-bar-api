@@ -67,6 +67,7 @@ public class NoteFactory {
 				.createdBy(note.getCreatedUser().getName())
 				.updatedAt(note.getUpdatedAt())
 				.updatedBy(note.getUpdatedUser().getName())
+				.deletedFlag(note.isDeletedFlag())
 				.build();
 	}
 
@@ -81,6 +82,7 @@ public class NoteFactory {
 				.createdBy(note.getCreatedUser().getName())
 				.updatedAt(note.getUpdatedAt())
 				.updatedBy(note.getUpdatedUser().getName())
+				.deletedFlag(note.isDeletedFlag())
 				.build();
 	}
 

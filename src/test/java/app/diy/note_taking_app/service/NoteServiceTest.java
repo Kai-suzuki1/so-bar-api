@@ -251,6 +251,7 @@ public class NoteServiceTest {
 				.createdUser(User.builder().id(1).name("tester").build())
 				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
 				.updatedUser(User.builder().name("tester").build())
+				.deletedFlag(false)
 				.build();
 		List<UserPermission> userPermissions = List.of(UserPermission.builder()
 				.id(1)
@@ -273,14 +274,26 @@ public class NoteServiceTest {
 				.createdBy(note.getCreatedUser().getName())
 				.updatedAt(note.getUpdatedAt())
 				.updatedBy(note.getUpdatedUser().getName())
+				.deletedFlag(false)
 				.build();
 
+		when(mockNoteRepository.findById(note.getId())).thenReturn(Optional.of(note));
 		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
 		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 1))
 				.thenReturn(expected);
 
-		assertEquals(expected, target.getNoteDetail(note, 1));
+		assertEquals(expected, target.getNoteDetail(note.getId(), 1));
+	}
+
+	@Test
+	void getNoteDetail_GivenNonexistentNoteId_ThrowException() {
+		when(mockNoteRepository.findById(anyInt())).thenReturn(Optional.empty());
+
+		NoteNotFoundException e = assertThrows(
+				NoteNotFoundException.class,
+				() -> target.getNoteDetail(1, 1));
+		assertEquals("Note was not found", e.getMessage());
 	}
 
 	@Test
@@ -301,6 +314,7 @@ public class NoteServiceTest {
 				.createdUser(User.builder().id(1).name("tester").build())
 				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
 				.updatedUser(User.builder().name("tester").build())
+				.deletedFlag(false)
 				.build();
 		NoteDetailResponse expected = NoteDetailResponse.builder()
 				.id(savedNote.getId())
@@ -312,6 +326,7 @@ public class NoteServiceTest {
 				.createdBy(savedNote.getCreatedUser().getName())
 				.updatedAt(savedNote.getUpdatedAt())
 				.updatedBy(savedNote.getUpdatedUser().getName())
+				.deletedFlag(false)
 				.build();
 
 		when(mockNoteFactory.createNote(user)).thenReturn(templateNote);
@@ -342,6 +357,7 @@ public class NoteServiceTest {
 				.createdUser(User.builder().id(1).name("tester").build())
 				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
 				.updatedUser(User.builder().name("tester").build())
+				.deletedFlag(false)
 				.build();
 		NoteUpdateRequest request = NoteUpdateRequest.builder()
 				.title("Updated Title")
@@ -365,6 +381,7 @@ public class NoteServiceTest {
 				.createdUser(note.getCreatedUser())
 				.updatedAt(note.getUpdatedAt())
 				.updatedUser(note.getUpdatedUser())
+				.deletedFlag(false)
 				.build();
 		NoteDetailResponse expected = NoteDetailResponse.builder()
 				.id(note.getId())
@@ -376,6 +393,7 @@ public class NoteServiceTest {
 				.createdBy(note.getCreatedUser().getName())
 				.updatedAt(note.getUpdatedAt())
 				.updatedBy(note.getUpdatedUser().getName())
+				.deletedFlag(false)
 				.build();
 
 		when(mockNoteFactory.updateNote(note.getId(), request, user)).thenReturn(updatedNote);
