@@ -166,7 +166,6 @@ public class NoteByIdControllerTest {
 	@Test
 	void getNoteDetail_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
 		noteDetailResponse.setUserIsAuthor(false);
-		// noteDetailResponse.setSharedUsers();
 
 		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
 		when(mockNoteService.getNoteDetail(any(Integer.class), any(Integer.class))).thenReturn(noteDetailResponse);

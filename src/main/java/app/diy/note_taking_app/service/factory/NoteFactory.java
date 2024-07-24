@@ -31,7 +31,7 @@ public class NoteFactory {
 						.updatedAt(note.getUpdatedAt())
 						.updatedBy(note.getUpdatedUser().getName())
 						.deletedFlag(note.isDeletedFlag())
-						// if note is note deleted and
+						// if note is not deleted and
 						// log-in user is author or shared user with read-write permission, return true
 						.deletableFlag(!note.isDeletedFlag()
 								&& (note.getCreatedUser().getId() == userId
@@ -54,7 +54,7 @@ public class NoteFactory {
 				.title(note.getTitle())
 				.contents(note.getContents())
 				.userIsAuthor(isAuthor)
-				.sharedUsers(isAuthor && !userPermissions.isEmpty()
+				.sharedUsers(!isAuthor && !userPermissions.isEmpty()
 						? userPermissions.stream()
 								.map(userPermission -> UserAuthorization.builder()
 										.permissionId(userPermission.getId())
