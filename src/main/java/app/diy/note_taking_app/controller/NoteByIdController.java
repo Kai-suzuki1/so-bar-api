@@ -1,5 +1,7 @@
 package app.diy.note_taking_app.controller;
 
+import java.util.Optional;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +17,7 @@ import app.diy.note_taking_app.domain.dto.response.NoteDetailResponse;
 import app.diy.note_taking_app.domain.entity.Note;
 import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.exceptions.InsufficientUserAuthorizationException;
+import app.diy.note_taking_app.exceptions.NoteNotFoundException;
 import app.diy.note_taking_app.service.NoteService;
 import app.diy.note_taking_app.service.UserPermissionService;
 import lombok.RequiredArgsConstructor;
@@ -28,13 +31,19 @@ public class NoteByIdController {
 	private final UserPermissionService userPermissionService;
 
 	@ModelAttribute
-	public Note getUndeletedNote(@PathVariable("noteId") Integer noteId) {
-		return noteService.getUndeletedNote(noteId);
+	public Optional<Note> getUndeletedNote(@PathVariable("noteId") Integer noteId) {
+		return noteService.getNote(noteId);
 	}
 
 	@GetMapping
-	public NoteDetailResponse getNoteDetail(@PathVariable("noteId") Integer noteId, @AuthenticationPrincipal User user) {
-		NoteDetailResponse noteDetail = noteService.getNoteDetail(noteId, user.getId());
+	public NoteDetailResponse getNoteDetail(
+			Optional<Note> note,
+			@PathVariable("noteId") Integer noteId,
+			@AuthenticationPrincipal User user) {
+
+		NoteDetailResponse noteDetail = noteService.getNoteDetail(
+				note.orElseThrow(() -> new NoteNotFoundException("Note was not found")),
+				user.getId());
 		// Throw exception if user is not author and does not have authorization
 		if (!noteDetail.isUserIsAuthor()
 				&& (noteDetail.getSharedUsers().isEmpty() || noteDetail.getSharedUsers().stream()
@@ -49,19 +58,21 @@ public class NoteByIdController {
 
 	@PatchMapping
 	public NoteDetailResponse updateNote(
-			Note note,
+			Optional<Note> note,
 			@Validated @RequestBody NoteUpdateRequest request,
 			@AuthenticationPrincipal User user) {
-		validateUserAuthorization(user.getId(), note);
+		Note targetNote = validateNoteExistence(note);
+		validateUserAuthorization(user.getId(), targetNote);
 
-		return noteService.update(note.getId(), request, user);
+		return noteService.update(targetNote.getId(), request, user);
 	}
 
 	@PatchMapping("/delete")
-	public void deleteNote(Note note, @AuthenticationPrincipal User user) {
-		validateUserAuthorization(user.getId(), note);
+	public void deleteNote(Optional<Note> note, @AuthenticationPrincipal User user) {
+		Note targetNote = validateNoteExistence(note);
+		validateUserAuthorization(user.getId(), targetNote);
 
-		noteService.delete(note, user);
+		noteService.delete(targetNote, user);
 	}
 
 	/**
@@ -77,5 +88,20 @@ public class NoteByIdController {
 				&& !userPermissionService.canUpdateNote(note.getId(), userId)) {
 			throw new InsufficientUserAuthorizationException("Not allowed to update this note");
 		}
+	}
+
+	/**
+	 * if note is present and not deleted, returns {@code Note}, otherwise
+	 * {@code NoteNotFoundException}
+	 * 
+	 * @param note {@code Optional<Note>} the value could be {@code Optional.empty}
+	 * @return {@code Note}
+	 * @throws NoteNotFoundException
+	 */
+	private Note validateNoteExistence(Optional<Note> note) {
+		if (note.isPresent() && !note.get().isDeletedFlag()) {
+			return note.get();
+		}
+		throw new NoteNotFoundException("Note was not found");
 	}
 }

@@ -1,6 +1,7 @@
 package app.diy.note_taking_app.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,7 +15,6 @@ import app.diy.note_taking_app.domain.entity.Note;
 import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.domain.entity.UserPermission;
 import app.diy.note_taking_app.exceptions.DatabaseTransactionalException;
-import app.diy.note_taking_app.exceptions.NoteNotFoundException;
 import app.diy.note_taking_app.repository.NoteRepository;
 import app.diy.note_taking_app.repository.UserPermissionRepository;
 import app.diy.note_taking_app.service.factory.NoteFactory;
@@ -52,15 +52,13 @@ public class NoteServiceImpl implements NoteService {
 	}
 
 	@Override
-	public Note getUndeletedNote(Integer noteId) {
-		return noteRepository.findByIdAndDeletedFlagFalse(noteId)
-				.orElseThrow(() -> new NoteNotFoundException("Note was not found"));
+	public Optional<Note> getNote(Integer noteId) {
+		return noteRepository.findById(noteId);
 	}
 
 	@Override
-	public NoteDetailResponse getNoteDetail(Integer noteId, Integer userId) {
-		Note note = noteRepository.findById(noteId)
-				.orElseThrow(() -> new NoteNotFoundException("Note was not found"));
+	public NoteDetailResponse getNoteDetail(Note note, Integer userId) {
+
 		List<UserPermission> userPermissions = userPermissionRepository
 				.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(note.getId());
 

@@ -34,7 +34,6 @@ import app.diy.note_taking_app.domain.entity.Note;
 import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.domain.entity.UserPermission;
 import app.diy.note_taking_app.exceptions.DatabaseTransactionalException;
-import app.diy.note_taking_app.exceptions.NoteNotFoundException;
 import app.diy.note_taking_app.repository.NoteRepository;
 import app.diy.note_taking_app.repository.UserPermissionRepository;
 import app.diy.note_taking_app.service.factory.NoteFactory;
@@ -224,21 +223,51 @@ public class NoteServiceTest {
 	}
 
 	@Test
-	void getUndeletedNote_GivenExistedNoteId_ReturnNote() {
-		Note returnVal = Note.builder().id(1).build();
-		when(mockNoteRepository.findByIdAndDeletedFlagFalse(anyInt())).thenReturn(Optional.of(returnVal));
+	void getUndeletedNote_GivenExistedNoteId_ReturnOptionalNote() {
+		Optional<Note> returnVal = Optional.ofNullable(Note.builder().id(1).build());
+		when(mockNoteRepository.findById(anyInt())).thenReturn(returnVal);
 
-		assertEquals(returnVal.getId(), target.getUndeletedNote(1).getId());
+		assertEquals(returnVal.get().getId(), target.getNote(1).get().getId());
 	}
 
 	@Test
-	void getUndeletedNote_GivenDeletedNoteId_ReturnNote() {
-		when(mockNoteRepository.findByIdAndDeletedFlagFalse(anyInt())).thenReturn(Optional.empty());
+	void getUndeletedNote_GivenDeletedNoteId_ReturnOptionalEmpty() {
+		when(mockNoteRepository.findById(anyInt())).thenReturn(Optional.empty());
+		assertEquals(Optional.empty(), target.getNote(1));
+	}
 
-		NoteNotFoundException e = assertThrows(
-				NoteNotFoundException.class,
-				() -> target.getUndeletedNote(1));
-		assertEquals("Note was not found", e.getMessage());
+	@Test
+	void getNoteDetail_UserIsAuthor_ReturnNote() {
+		Note note = Note.builder()
+				.id(1)
+				.title("Title 1")
+				.contents("First note")
+				.createdAt(LocalDateTime.of(2024, 1, 1, 9, 0))
+				.createdUser(User.builder().id(1).name("tester").build())
+				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
+				.updatedUser(User.builder().name("tester").build())
+				.deletedFlag(false)
+				.build();
+		List<UserPermission> userPermissions = List.of();
+		NoteDetailResponse expected = NoteDetailResponse.builder()
+				.id(note.getId())
+				.title(note.getTitle())
+				.contents(note.getContents())
+				.userIsAuthor(true)
+				.sharedUsers(List.of())
+				.createdAt(note.getCreatedAt())
+				.createdBy(note.getCreatedUser().getName())
+				.updatedAt(note.getUpdatedAt())
+				.updatedBy(note.getUpdatedUser().getName())
+				.deletedFlag(false)
+				.build();
+
+		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
+				.thenReturn(userPermissions);
+		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 1))
+				.thenReturn(expected);
+
+		assertEquals(expected, target.getNoteDetail(note, 1));
 	}
 
 	@Test
@@ -277,23 +306,96 @@ public class NoteServiceTest {
 				.deletedFlag(false)
 				.build();
 
-		when(mockNoteRepository.findById(note.getId())).thenReturn(Optional.of(note));
 		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
 		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 1))
 				.thenReturn(expected);
 
-		assertEquals(expected, target.getNoteDetail(note.getId(), 1));
+		assertEquals(expected, target.getNoteDetail(note, 1));
 	}
 
 	@Test
-	void getNoteDetail_GivenNonexistentNoteId_ThrowException() {
-		when(mockNoteRepository.findById(anyInt())).thenReturn(Optional.empty());
+	void getNoteDetail_UserIsSharedUserAndEmptyUserPermissions_ReturnNote() {
+		Note note = Note.builder()
+				.id(1)
+				.title("Title 1")
+				.contents("First note")
+				.createdAt(LocalDateTime.of(2024, 1, 1, 9, 0))
+				.createdUser(User.builder().id(1).name("tester").build())
+				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
+				.updatedUser(User.builder().name("tester").build())
+				.deletedFlag(false)
+				.build();
+		List<UserPermission> userPermissions = List.of();
+		NoteDetailResponse expected = NoteDetailResponse.builder()
+				.id(note.getId())
+				.title(note.getTitle())
+				.contents(note.getContents())
+				.userIsAuthor(true)
+				.sharedUsers(List.of())
+				.createdAt(note.getCreatedAt())
+				.createdBy(note.getCreatedUser().getName())
+				.updatedAt(note.getUpdatedAt())
+				.updatedBy(note.getUpdatedUser().getName())
+				.deletedFlag(false)
+				.build();
 
-		NoteNotFoundException e = assertThrows(
-				NoteNotFoundException.class,
-				() -> target.getNoteDetail(1, 1));
-		assertEquals("Note was not found", e.getMessage());
+		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
+				.thenReturn(userPermissions);
+		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 2))
+				.thenReturn(expected);
+
+		assertEquals(expected, target.getNoteDetail(note, 2));
+	}
+
+	@Test
+	void getNoteDetail_UserIsSharedUserAndMatchedUserInUserPermissions_ReturnNote() {
+		Note note = Note.builder()
+				.id(1)
+				.title("Title 1")
+				.contents("First note")
+				.createdAt(LocalDateTime.of(2024, 1, 1, 9, 0))
+				.createdUser(User.builder().id(1).name("tester").build())
+				.updatedAt(LocalDateTime.of(2024, 1, 2, 9, 0))
+				.updatedUser(User.builder().name("tester").build())
+				.deletedFlag(false)
+				.build();
+		List<UserPermission> userPermissions = List.of(
+				UserPermission.builder()
+						.id(1)
+						.user(User.builder().id(2).build())
+						.type("{\"readOnly\": false, \"readWrite\": true}")
+						.build(),
+				UserPermission.builder()
+						.id(1)
+						.user(User.builder().id(3).build())
+						.type("{\"readOnly\": false, \"readWrite\": true}")
+						.build());
+		NoteDetailResponse expected = NoteDetailResponse.builder()
+				.id(note.getId())
+				.title(note.getTitle())
+				.contents(note.getContents())
+				.userIsAuthor(false)
+				.sharedUsers(userPermissions.stream()
+						.map(userPermission -> UserAuthorization.builder()
+								.permissionId(userPermission.getId())
+								.userId(userPermission.getUser().getId())
+								.type(userPermission.toPermissionType())
+								.build())
+						.toList())
+				.createdAt(note.getCreatedAt())
+				.createdBy(note.getCreatedUser().getName())
+				.updatedAt(note.getUpdatedAt())
+				.updatedBy(note.getUpdatedUser().getName())
+				.deletedFlag(false)
+				.build();
+
+		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
+				.thenReturn(userPermissions);
+		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 2))
+				.thenReturn(expected);
+
+		assertEquals(expected, target.getNoteDetail(note, 2));
 	}
 
 	@Test

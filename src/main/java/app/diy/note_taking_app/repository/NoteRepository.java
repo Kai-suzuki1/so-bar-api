@@ -1,7 +1,6 @@
 package app.diy.note_taking_app.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,8 +13,6 @@ import app.diy.note_taking_app.domain.entity.User;
 
 @Repository
 public interface NoteRepository extends JpaRepository<Note, Integer> {
-
-	Optional<Note> findByIdAndDeletedFlagFalse(Integer id);
 
 	List<Note> findByCreatedUser_Id(Integer id);
 

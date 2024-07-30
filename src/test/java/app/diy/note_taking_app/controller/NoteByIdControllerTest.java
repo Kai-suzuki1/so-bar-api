@@ -1,7 +1,7 @@
 package app.diy.note_taking_app.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -48,7 +49,6 @@ import app.diy.note_taking_app.domain.dto.response.NoteDetailResponse;
 import app.diy.note_taking_app.domain.entity.Note;
 import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.exceptions.DatabaseTransactionalException;
-import app.diy.note_taking_app.exceptions.NoteNotFoundException;
 import app.diy.note_taking_app.service.NoteService;
 import app.diy.note_taking_app.service.UserPermissionService;
 import io.jsonwebtoken.Jwts;
@@ -148,42 +148,84 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
-	void getNoteDetail_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
-		when(mockNoteService.getNoteDetail(any(Integer.class), any(Integer.class))).thenReturn(noteDetailResponse);
+	void getNoteDetail_UserIsAuthorAndHasZeroSharedUser_Successful() throws Exception {
+		noteDetailResponse.setSharedUsers(List.of());
+
+		when(mockNoteService.getNote(anyInt())).thenReturn(Optional.ofNullable(note));
+		when(mockNoteService.getNoteDetail(note, accessUser.getId())).thenReturn(noteDetailResponse);
 
 		mockMvc.perform(
 				get("/v1/notes/1")
 						.header("Authorization", JwtToken)
 						.with(SecurityMockMvcRequestPostProcessors.user(accessUser)))
 				.andExpect(status().is2xxSuccessful())
-				.andExpect(content().json(StringUtil.convertJsonToString(noteDetailResponse, objectMapper)))
+				.andExpect(content().json(StringUtil.convertJsonToString(noteDetailResponse,
+						objectMapper)))
 				.andReturn();
 
-		verify(mockNoteService, times(1)).getNoteDetail(any(), any());
+		verify(mockNoteService, times(1)).getNoteDetail(note, 1);
 	}
 
 	@Test
-	void getNoteDetail_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
-		noteDetailResponse.setUserIsAuthor(false);
+	void getNoteDetail_UserIsAuthorAndNoteIsDeleted_Successful() throws Exception {
+		noteDetailResponse.setSharedUsers(List.of());
+		note.setDeletedFlag(true);
+		noteDetailResponse.setDeletedFlag(true);
 
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
-		when(mockNoteService.getNoteDetail(any(Integer.class), any(Integer.class))).thenReturn(noteDetailResponse);
+		when(mockNoteService.getNote(anyInt())).thenReturn(Optional.ofNullable(note));
+		when(mockNoteService.getNoteDetail(note, accessUser.getId())).thenReturn(noteDetailResponse);
 
 		mockMvc.perform(
 				get("/v1/notes/1")
 						.header("Authorization", JwtToken)
 						.with(SecurityMockMvcRequestPostProcessors.user(accessUser)))
 				.andExpect(status().is2xxSuccessful())
-				.andExpect(content().json(StringUtil.convertJsonToString(noteDetailResponse, objectMapper)))
+				.andExpect(content().json(StringUtil.convertJsonToString(noteDetailResponse,
+						objectMapper)))
 				.andReturn();
 
-		verify(mockNoteService, times(1)).getNoteDetail(any(), any());
+		verify(mockNoteService, times(1)).getNoteDetail(note, 1);
+	}
+
+	@Test
+	void getNoteDetail_UserIsAuthorAndHasSharedUsers_Successful() throws Exception {
+		when(mockNoteService.getNote(anyInt())).thenReturn(Optional.ofNullable(note));
+		when(mockNoteService.getNoteDetail(note, accessUser.getId())).thenReturn(noteDetailResponse);
+
+		mockMvc.perform(
+				get("/v1/notes/1")
+						.header("Authorization", JwtToken)
+						.with(SecurityMockMvcRequestPostProcessors.user(accessUser)))
+				.andExpect(status().is2xxSuccessful())
+				.andExpect(content().json(StringUtil.convertJsonToString(noteDetailResponse,
+						objectMapper)))
+				.andReturn();
+
+		verify(mockNoteService, times(1)).getNoteDetail(note, 1);
+	}
+
+	@Test
+	void getNoteDetail_UserIsSharedUser_Successful() throws Exception {
+		noteDetailResponse.setUserIsAuthor(false);
+
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
+		when(mockNoteService.getNoteDetail(note, accessUser.getId())).thenReturn(noteDetailResponse);
+
+		mockMvc.perform(
+				get("/v1/notes/1")
+						.header("Authorization", JwtToken)
+						.with(SecurityMockMvcRequestPostProcessors.user(accessUser)))
+				.andExpect(status().is2xxSuccessful())
+				.andExpect(content().json(StringUtil.convertJsonToString(noteDetailResponse,
+						objectMapper)))
+				.andReturn();
+
+		verify(mockNoteService, times(1)).getNoteDetail(note, 1);
 	}
 
 	@Test
 	void getNoteDetail_NonExistentNote_NotFound() throws Exception {
-		when(mockNoteService.getUndeletedNote(any())).thenThrow(new NoteNotFoundException(anyString()));
+		when(mockNoteService.getNote(any())).thenReturn(Optional.empty());
 
 		mockMvc.perform(
 				get("/v1/notes/1")
@@ -193,19 +235,21 @@ public class NoteByIdControllerTest {
 				.andExpect(content().json(StringUtil.convertJsonToString(
 						ApiError.builder()
 								.path("/v1/notes/1")
-								.message("")
+								.message("Note was not found")
 								.statusCode(HttpStatus.NOT_FOUND.value())
 								.localDateTime(LocalDateTime.now())
 								.build(),
 						objectMapper)))
 				.andReturn();
 
-		verify(mockNoteService, times(0)).getNoteDetail(any(), any());
+		verify(mockNoteService, times(0)).getNoteDetail(note, 1);
 	}
 
 	static Stream<List<UserAuthorization>> unsharedUserProvider() {
 		return Stream.of(
+				// Empty Shared Users
 				List.of(),
+				// Unmatched Shared Users
 				List.of(
 						UserAuthorization.builder()
 								.userId(2)
@@ -221,8 +265,8 @@ public class NoteByIdControllerTest {
 		noteDetailResponse.setUserIsAuthor(false);
 		noteDetailResponse.setSharedUsers(sharedUsers);
 
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
-		when(mockNoteService.getNoteDetail(any(), any())).thenReturn(noteDetailResponse);
+		when(mockNoteService.getNote(note.getId())).thenReturn(Optional.ofNullable(note));
+		when(mockNoteService.getNoteDetail(note, accessUser.getId())).thenReturn(noteDetailResponse);
 
 		mockMvc.perform(
 				get("/v1/notes/1")
@@ -242,7 +286,7 @@ public class NoteByIdControllerTest {
 
 	@Test
 	void updateNote_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		when(mockNoteService.update(any(), any(), any())).thenReturn(noteDetailResponse);
 
 		mockMvc.perform(
@@ -262,7 +306,7 @@ public class NoteByIdControllerTest {
 	void updateNote_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
 		note.setCreatedUser(User.builder().id(2).build());
 
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		when(mockUserPermissionService.canUpdateNote(note.getId(), accessUser.getId())).thenReturn(true);
 		when(mockNoteService.update(any(), any(), any())).thenReturn(noteDetailResponse);
 
@@ -280,10 +324,55 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
+	void updateNote_NoteNotFound_NotFound() throws Exception {
+		when(mockNoteService.getNote(any())).thenReturn(Optional.empty());
+
+		mockMvc.perform(
+				patch("/v1/notes/1")
+						.header("Authorization", JwtToken)
+						.with(SecurityMockMvcRequestPostProcessors.user(accessUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(StringUtil.convertJsonToString(noteUpdateRequest, objectMapper)))
+				.andExpect(status().isNotFound())
+				.andExpect(content().json(StringUtil.convertJsonToString(
+						ApiError.builder()
+								.path("/v1/notes/1")
+								.message("Note was not found")
+								.statusCode(HttpStatus.NOT_FOUND.value())
+								.localDateTime(LocalDateTime.now())
+								.build(),
+						objectMapper)))
+				.andReturn();
+	}
+
+	@Test
+	void updateNote_NoteIsDeleted_NotFound() throws Exception {
+		note.setDeletedFlag(true);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
+
+		mockMvc.perform(
+				patch("/v1/notes/1")
+						.header("Authorization", JwtToken)
+						.with(SecurityMockMvcRequestPostProcessors.user(accessUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(StringUtil.convertJsonToString(noteUpdateRequest, objectMapper)))
+				.andExpect(status().isNotFound())
+				.andExpect(content().json(StringUtil.convertJsonToString(
+						ApiError.builder()
+								.path("/v1/notes/1")
+								.message("Note was not found")
+								.statusCode(HttpStatus.NOT_FOUND.value())
+								.localDateTime(LocalDateTime.now())
+								.build(),
+						objectMapper)))
+				.andReturn();
+	}
+
+	@Test
 	void updateNote_InsufficientAuthorization_Forbidden() throws Exception {
 		note.setCreatedUser(User.builder().id(2).build());
 
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		when(mockUserPermissionService.canUpdateNote(note.getId(), accessUser.getId())).thenReturn(false);
 
 		mockMvc.perform(
@@ -306,7 +395,7 @@ public class NoteByIdControllerTest {
 
 	@Test
 	void updateNote_DatabaseTransactionalException_InternalServerError() throws Exception {
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		when(mockUserPermissionService.canUpdateNote(note.getId(), accessUser.getId())).thenReturn(true);
 		when(mockNoteService.update(any(), any(), any())).thenThrow(new DatabaseTransactionalException(""));
 
@@ -333,7 +422,7 @@ public class NoteByIdControllerTest {
 		noteUpdateRequest.setTitle(RandomStringUtils.random(256, true, true));
 		noteUpdateRequest.setContents(RandomStringUtils.random(65536, true, true));
 
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 
 		mockMvc.perform(
 				patch("/v1/notes/1")
@@ -353,7 +442,7 @@ public class NoteByIdControllerTest {
 				"updateNote_max_length_success_response.json"),
 				NoteDetailResponse.class);
 
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		when(mockNoteService.update(any(), any(), any())).thenReturn(returnVal);
 
 		mockMvc.perform(
@@ -369,7 +458,7 @@ public class NoteByIdControllerTest {
 
 	@Test
 	void deleteNote_UserIsAuthorAndGivenNormalRequest_Successful() throws Exception {
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		doNothing().when(mockNoteService).delete(note, accessUser);
 
 		mockMvc.perform(
@@ -386,7 +475,7 @@ public class NoteByIdControllerTest {
 	void deleteNote_UserIsSharedUserAndGivenNormalRequest_Successful() throws Exception {
 		note.setCreatedUser(User.builder().id(2).build());
 
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		when(mockUserPermissionService.canUpdateNote(note.getId(), accessUser.getId())).thenReturn(true);
 		doNothing().when(mockNoteService).delete(note, accessUser);
 
@@ -401,10 +490,55 @@ public class NoteByIdControllerTest {
 	}
 
 	@Test
+	void deleteNote_NoteNotFound_NotFound() throws Exception {
+		when(mockNoteService.getNote(any())).thenReturn(Optional.empty());
+
+		mockMvc.perform(
+				patch("/v1/notes/1/delete")
+						.header("Authorization", JwtToken)
+						.with(SecurityMockMvcRequestPostProcessors.user(accessUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(StringUtil.convertJsonToString(noteUpdateRequest, objectMapper)))
+				.andExpect(status().isNotFound())
+				.andExpect(content().json(StringUtil.convertJsonToString(
+						ApiError.builder()
+								.path("/v1/notes/1/delete")
+								.message("Note was not found")
+								.statusCode(HttpStatus.NOT_FOUND.value())
+								.localDateTime(LocalDateTime.now())
+								.build(),
+						objectMapper)))
+				.andReturn();
+	}
+
+	@Test
+	void deleteNote_NoteIsDeleted_NotFound() throws Exception {
+		note.setDeletedFlag(true);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
+
+		mockMvc.perform(
+				patch("/v1/notes/1/delete")
+						.header("Authorization", JwtToken)
+						.with(SecurityMockMvcRequestPostProcessors.user(accessUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(StringUtil.convertJsonToString(noteUpdateRequest, objectMapper)))
+				.andExpect(status().isNotFound())
+				.andExpect(content().json(StringUtil.convertJsonToString(
+						ApiError.builder()
+								.path("/v1/notes/1/delete")
+								.message("Note was not found")
+								.statusCode(HttpStatus.NOT_FOUND.value())
+								.localDateTime(LocalDateTime.now())
+								.build(),
+						objectMapper)))
+				.andReturn();
+	}
+
+	@Test
 	void deleteNote_InsufficientAuthorization_Forbidden() throws Exception {
 		note.setCreatedUser(User.builder().id(2).build());
 
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		when(mockUserPermissionService.canUpdateNote(note.getId(), accessUser.getId())).thenReturn(false);
 
 		mockMvc.perform(
@@ -427,7 +561,7 @@ public class NoteByIdControllerTest {
 
 	@Test
 	void deleteNote_DatabaseTransactionalException_InternalServerError() throws Exception {
-		when(mockNoteService.getUndeletedNote(any())).thenReturn(note);
+		when(mockNoteService.getNote(any())).thenReturn(Optional.ofNullable(note));
 		when(mockUserPermissionService.canUpdateNote(note.getId(), accessUser.getId())).thenReturn(true);
 		doThrow(new DatabaseTransactionalException("")).when(mockNoteService).delete(note, accessUser);
 

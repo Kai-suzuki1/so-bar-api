@@ -1,6 +1,7 @@
 package app.diy.note_taking_app.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import app.diy.note_taking_app.domain.dto.request.NoteUpdateRequest;
 import app.diy.note_taking_app.domain.dto.response.NoteDetailResponse;
@@ -12,9 +13,9 @@ public interface NoteService {
 
 	List<PreviewNoteResponse> getNoteList(Integer userId);
 
-	Note getUndeletedNote(Integer noteId);
+	Optional<Note> getNote(Integer noteId);
 
-	NoteDetailResponse getNoteDetail(Integer noteId, Integer userId);
+	NoteDetailResponse getNoteDetail(Note note, Integer userId);
 
 	NoteDetailResponse create(User user);
 
