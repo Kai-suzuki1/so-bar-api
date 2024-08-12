@@ -33,12 +33,13 @@ public class NoteFactory {
 						.deletedFlag(note.isDeletedFlag())
 						// if note is not deleted and
 						// log-in user is author or shared user with read-write permission, return true
-						.deletableFlag(!note.isDeletedFlag()
-								&& (note.getCreatedUser().getId() == userId
-										|| userPermissionRepository
-												.findByNote_IdAndUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(note.getId(), userId)
-												.filter(userPermission -> userPermission.toPermissionType().isReadWrite())
-												.isPresent()))
+						.deletableFlag(
+								!note.isDeletedFlag()
+										&& (note.getCreatedUser().getId() == userId
+												|| userPermissionRepository
+														.findByNote_IdAndUser_IdAndDeletedFlagFalseAndAcceptedFlagTrue(note.getId(), userId)
+														.filter(userPermission -> userPermission.toPermissionType().isReadWrite())
+														.isPresent()))
 						.build())
 				.toList();
 	}

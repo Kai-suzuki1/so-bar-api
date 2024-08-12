@@ -33,6 +33,7 @@ import app.diy.note_taking_app.domain.entity.User;
 import app.diy.note_taking_app.exceptions.UserNotFoundException;
 import app.diy.note_taking_app.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -163,5 +164,27 @@ public class JwtServiceTest {
 		when(mockUserRepository.findByEmailAndDeletedFlagFalse(user.getEmail())).thenReturn(Optional.of(user));
 
 		assertFalse(target.isTokenValid(token, user));
+	}
+
+	@Test
+	void isTokenValid_TokenIsExpired_ReturnFalse() {
+		String expiredToken = Jwts.builder()
+				.setClaims(new HashMap<>())
+				.setSubject("1")
+				.setIssuedAt(Date.from(issuedAt))
+				.setExpiration(Date.from(issuedAt.minusSeconds(1)))
+				.signWith(Keys.hmacShaKeyFor(
+						Decoders.BASE64.decode(spyNtaProp.decodeSecretKey())),
+						SignatureAlgorithm.HS256)
+				.compact();
+		User user = User.builder()
+				.id(1)
+				.email("sample11@gmail.com")
+				.deletedFlag(false)
+				.build();
+
+		when(mockUserRepository.findByEmailAndDeletedFlagFalse(user.getEmail())).thenReturn(Optional.of(user));
+
+		assertThrows(ExpiredJwtException.class, () -> target.isTokenValid(expiredToken, user));
 	}
 }
