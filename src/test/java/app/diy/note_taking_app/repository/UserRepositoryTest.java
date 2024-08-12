@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -28,13 +29,13 @@ public class UserRepositoryTest {
 	@Autowired
 	private TestEntityManager entityManager;
 
-	private User testUser;
+	private User insertedUser;
 
 	private User savedUser;
 
 	@BeforeEach
 	void setUp() {
-		testUser = User.builder()
+		insertedUser = User.builder()
 				.name("Test Name")
 				.email("test_email@gmail.com")
 				.password("sample")
@@ -43,7 +44,7 @@ public class UserRepositoryTest {
 				.deletedFlag(false)
 				.build();
 
-		savedUser = userRepository.saveAndFlush(testUser);
+		savedUser = userRepository.saveAndFlush(insertedUser);
 	}
 
 	@Test
@@ -161,22 +162,24 @@ public class UserRepositoryTest {
 	}
 
 	@Test
-	void deleteUser_DeleteNote() {
+	void deleteUser_DeleteUser() {
 		userRepository.deleteUser(savedUser.getId());
 		entityManager.refresh(savedUser);
 		Optional<User> actual = userRepository.findById(savedUser.getId());
+		List<User> allRecords = userRepository.findAll();
 
+		assertEquals(1, allRecords.size(), "Number of records should not be changed");
 		assertTrue(actual.get().isDeletedFlag(), "DeletedFlag should be true");
 		assertNotEquals(actual.get().getCreatedAt(), actual.get().getUpdatedAt(), "UpdatedAt is not updated");
 	}
 
 	@Test
-	void deleteUser_DeleteDifferentNote() {
+	void deleteUser_DeleteDifferentUser() {
 		userRepository.deleteUser(savedUser.getId() + 1);
 		entityManager.refresh(savedUser);
 		Optional<User> actual = userRepository.findById(savedUser.getId());
 
 		assertFalse(actual.get().isDeletedFlag(), "DeletedFlag should be false");
-		assertEquals(savedUser, actual.get(), "UpdatedAt is not updated");
+		assertEquals(savedUser, actual.get(), "User should not be updated");
 	}
 }
