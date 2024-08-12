@@ -264,7 +264,7 @@ public class NoteServiceTest {
 
 		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
-		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 1))
+		when(mockNoteFactory.createNoteDetailResponse(note, userPermissions, 1))
 				.thenReturn(expected);
 
 		assertEquals(expected, target.getNoteDetail(note, 1));
@@ -308,7 +308,7 @@ public class NoteServiceTest {
 
 		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
-		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 1))
+		when(mockNoteFactory.createNoteDetailResponse(note, userPermissions, 1))
 				.thenReturn(expected);
 
 		assertEquals(expected, target.getNoteDetail(note, 1));
@@ -342,7 +342,7 @@ public class NoteServiceTest {
 
 		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
-		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 2))
+		when(mockNoteFactory.createNoteDetailResponse(note, userPermissions, 2))
 				.thenReturn(expected);
 
 		assertEquals(expected, target.getNoteDetail(note, 2));
@@ -392,7 +392,7 @@ public class NoteServiceTest {
 
 		when(mockUserPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(anyInt()))
 				.thenReturn(userPermissions);
-		when(mockNoteFactory.creteNoteDetailResponse(note, userPermissions, 2))
+		when(mockNoteFactory.createNoteDetailResponse(note, userPermissions, 2))
 				.thenReturn(expected);
 
 		assertEquals(expected, target.getNoteDetail(note, 2));
@@ -433,7 +433,7 @@ public class NoteServiceTest {
 
 		when(mockNoteFactory.createNote(user)).thenReturn(templateNote);
 		when(mockNoteRepository.save(templateNote)).thenReturn(savedNote);
-		when(mockNoteFactory.creteNoteDetailResponse(savedNote, 1)).thenReturn(expected);
+		when(mockNoteFactory.createNoteDetailResponse(savedNote, 1)).thenReturn(expected);
 
 		assertEquals(expected, target.create(user));
 	}
@@ -501,7 +501,7 @@ public class NoteServiceTest {
 		when(mockNoteFactory.updateNote(note.getId(), request, user)).thenReturn(updatedNote);
 		when(mockNoteRepository.saveAndFlush(updatedNote)).thenReturn(savedNote);
 		doNothing().when(mockEntityManager).refresh(savedNote);
-		when(mockNoteFactory.creteNoteDetailResponse(
+		when(mockNoteFactory.createNoteDetailResponse(
 				savedNote,
 				List.of(),
 				user.getId()))

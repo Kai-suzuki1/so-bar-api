@@ -43,7 +43,7 @@ public class NoteFactory {
 				.toList();
 	}
 
-	public NoteDetailResponse creteNoteDetailResponse(
+	public NoteDetailResponse createNoteDetailResponse(
 			Note note,
 			List<UserPermission> userPermissions,
 			Integer userId) {
@@ -71,7 +71,7 @@ public class NoteFactory {
 				.build();
 	}
 
-	public NoteDetailResponse creteNoteDetailResponse(Note note, Integer userId) {
+	public NoteDetailResponse createNoteDetailResponse(Note note, Integer userId) {
 		return NoteDetailResponse.builder()
 				.id(note.getId())
 				.title(note.getTitle())

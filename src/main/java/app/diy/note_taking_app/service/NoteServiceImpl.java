@@ -62,7 +62,7 @@ public class NoteServiceImpl implements NoteService {
 		List<UserPermission> userPermissions = userPermissionRepository
 				.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(note.getId());
 
-		return noteFactory.creteNoteDetailResponse(note, userPermissions, userId);
+		return noteFactory.createNoteDetailResponse(note, userPermissions, userId);
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class NoteServiceImpl implements NoteService {
 	public NoteDetailResponse create(User user) {
 		try {
 			Note savedNote = noteRepository.save(noteFactory.createNote(user));
-			return noteFactory.creteNoteDetailResponse(savedNote, user.getId());
+			return noteFactory.createNoteDetailResponse(savedNote, user.getId());
 		} catch (Exception e) {
 			throw new DatabaseTransactionalException("Failed to save note", e);
 		}
@@ -83,7 +83,7 @@ public class NoteServiceImpl implements NoteService {
 			Note savedNote = noteRepository.saveAndFlush(noteFactory.updateNote(noteId, request, user));
 			// Refresh DB instance and synchronize to updated DB data
 			entityManager.refresh(savedNote);
-			return noteFactory.creteNoteDetailResponse(
+			return noteFactory.createNoteDetailResponse(
 					savedNote,
 					userPermissionRepository.findByNote_IdAndDeletedFlagFalseAndAcceptedFlagTrue(noteId),
 					user.getId());
